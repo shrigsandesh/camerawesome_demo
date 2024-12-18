@@ -5,10 +5,10 @@ import 'dart:io';
 class FilePreviewWidget extends StatefulWidget {
   final String filePath;
 
-  const FilePreviewWidget({Key? key, required this.filePath}) : super(key: key);
+  const FilePreviewWidget({super.key, required this.filePath});
 
   @override
-  _FilePreviewWidgetState createState() => _FilePreviewWidgetState();
+  State<FilePreviewWidget> createState() => _FilePreviewWidgetState();
 }
 
 class _FilePreviewWidgetState extends State<FilePreviewWidget> {
