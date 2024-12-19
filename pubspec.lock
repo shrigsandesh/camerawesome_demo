@@ -28,10 +28,11 @@ packages:
   camerawesome:
     dependency: "direct main"
     description:
-      name: camerawesome
-      sha256: "3619d5605fb14ab72c815532c1d9f635512c75df07b5a742b60a9a4b03b6081e"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: master
+      resolved-ref: eb86c3ce545e92ea1866e77dd401e0b154fe76b1
+      url: "https://github.com/shrigsandesh/CamerAwesome.git"
+    source: git
     version: "2.1.0"
   carousel_slider:
     dependency: transitive
@@ -180,10 +181,10 @@ packages:
     dependency: transitive
     description:
       name: image
-      sha256: "20842a5ad1555be624c314b0c0cc0566e8ece412f61e859a42efeb6d4101a26c"
+      sha256: b50b415345578583de0f1cf4c7bd389f164de0b316d890c707b41133047dbc2a
       url: "https://pub.dev"
     source: hosted
-    version: "4.5.0"
+    version: "4.5.1"
   leak_tracker:
     dependency: transitive
     description:

@@ -1,6 +1,6 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
+import 'package:camerawesome_demo/expandable_zoom_widget.dart';
 import 'package:camerawesome_demo/top_control_widget.dart';
-import 'package:camerawesome_demo/zoom_control_widget.dart';
 
 import 'package:flutter/material.dart';
 
@@ -27,7 +27,7 @@ class CustomCameraUi extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      ZoomControlWidget(
+                      ExpandableZoomControl(
                         state: cameraState,
                       ),
                       const SizedBox(

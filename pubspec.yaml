@@ -35,7 +35,10 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  camerawesome: ^2.1.0
+  camerawesome: 
+    git:
+      url: https://github.com/shrigsandesh/CamerAwesome.git
+      ref: master 
   video_player: ^2.9.2
   google_mlkit_barcode_scanning: ^0.13.0
   google_mlkit_face_detection: ^0.12.0

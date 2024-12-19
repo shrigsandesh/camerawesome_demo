@@ -1,5 +1,6 @@
 import 'package:camerawesome_demo/barcode_scanner.dart';
 import 'package:camerawesome_demo/custom_ui.dart';
+import 'package:camerawesome_demo/default_ui.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -32,6 +33,16 @@ class HomePage extends StatelessWidget {
               );
             },
             child: const Text("custom camera"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const DefaultCameraAswesomeUI(),
+                ),
+              );
+            },
+            child: const Text("Default camera"),
           ),
         ],
       ),
