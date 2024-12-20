@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  better_open_file:
+    dependency: "direct main"
+    description:
+      name: better_open_file
+      sha256: "975d700240a1529105b32fb5ff3fe127719e6d980ad8bbf07a43fdc326d71413"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.6.5"
   boolean_selector:
     dependency: transitive
     description:
@@ -75,7 +83,7 @@ packages:
     source: hosted
     version: "0.0.8"
   cross_file:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: cross_file
       sha256: "7caf6a750a0c04effbb52a676dce9a4a592e10ad35c34d6d2d0e4811160d5670"
@@ -258,7 +266,7 @@ packages:
     source: hosted
     version: "1.9.0"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       sha256: "50c5dd5b6e1aaf6fb3a78b33f6aa3afca52bf903a8a5298f53101fdaee55bbcd"
@@ -305,6 +313,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  percent_indicator:
+    dependency: "direct main"
+    description:
+      name: percent_indicator
+      sha256: "0d77d5c6fa9b7f60202cedf748b568ba9ba38d3f30405d6ceae4da76f5185462"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.4"
   petitparser:
     dependency: transitive
     description:

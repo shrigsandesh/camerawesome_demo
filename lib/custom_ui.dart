@@ -2,6 +2,8 @@ import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/expandable_zoom_widget.dart';
 import 'package:camerawesome_demo/grid_overlay.dart';
 import 'package:camerawesome_demo/top_control_widget.dart';
+import 'package:camerawesome_demo/utils/file_util.dart';
+import 'package:camerawesome_demo/widgets/video_capture_button.dart';
 
 import 'package:flutter/material.dart';
 
@@ -37,7 +39,6 @@ class CustomCameraUi extends StatelessWidget {
                             const SizedBox(
                               height: 12,
                             ),
-                            // _BottomControls(cameraState: cameraState),
                           ],
                         ),
                       ),
@@ -71,24 +72,19 @@ class _BottomControls extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             IconButton(
-                onPressed: () {
-                  cameraState.switchCameraSensor();
-                },
-                icon: const Icon(
-                  Icons.cameraswitch_rounded,
-                  color: Colors.white,
-                  size: 32,
-                )),
-            IconButton(
-                onPressed: () {
-                  cameraState.when(
-                      onPhotoMode: (picState) => picState.takePhoto());
-                },
-                icon: const Icon(
-                  Icons.camera,
-                  color: Colors.white,
-                  size: 72,
-                )),
+              onPressed: () {
+                cameraState.switchCameraSensor();
+              },
+              icon: const Icon(
+                Icons.cameraswitch_rounded,
+                color: Colors.white,
+                size: 32,
+              ),
+            ),
+            VideoCaptureButton(
+              state: cameraState,
+              captureDuration: const Duration(seconds: 5),
+            ),
             SizedBox(
               width: 45,
               child: StreamBuilder<MediaCapture?>(
@@ -100,8 +96,19 @@ class _BottomControls extends StatelessWidget {
                   return AwesomeMediaPreview(
                     mediaCapture: snapshot.data!,
                     onMediaTap: (MediaCapture mediaCapture) {
-                      // ignore: avoid_print
-                      print("Tap on $mediaCapture");
+                      mediaCapture.captureRequest.when(
+                        single: (single) {
+                          debugPrint('single: ${single.file?.path}');
+                          single.file?.open();
+                        },
+                        multiple: (multiple) {
+                          multiple.fileBySensor.forEach((key, value) {
+                            debugPrint(
+                                'multiple file taken: $key ${value?.path}');
+                            value?.open();
+                          });
+                        },
+                      );
                     },
                   );
                 },
