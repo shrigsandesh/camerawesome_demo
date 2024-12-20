@@ -14,6 +14,7 @@ class _TopControlWidgetState extends State<TopControlWidget> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         StreamBuilder<FlashMode>(
           stream: widget.state.sensorConfig.flashMode$,
@@ -65,6 +66,9 @@ class _TopControlWidgetState extends State<TopControlWidget> {
                   child: Center(child: AspectRatioWidget(state: widget.state))),
             );
           },
+        ),
+        const SizedBox(
+          width: 20,
         )
       ],
     );
