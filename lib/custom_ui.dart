@@ -47,6 +47,18 @@ class CustomCameraUi extends StatelessWidget {
                   ],
                 ),
               ),
+              ColoredBox(
+                color: Colors.black,
+                child: CameraModePager(
+                    onChangeCameraRequest: (mode) {
+                      cameraState.setState(mode);
+                    },
+                    availableModes: const [
+                      CaptureMode.photo,
+                      CaptureMode.video
+                    ],
+                    initialMode: CaptureMode.photo),
+              ),
               _BottomControls(cameraState: cameraState),
             ],
           );
@@ -81,10 +93,22 @@ class _BottomControls extends StatelessWidget {
                 size: 32,
               ),
             ),
-            VideoCaptureButton(
-              state: cameraState,
-              captureDuration: const Duration(seconds: 5),
-            ),
+            if (cameraState.captureMode == CaptureMode.video) ...[
+              VideoCaptureButton(
+                state: cameraState,
+                captureDuration: const Duration(seconds: 5),
+              ),
+            ] else
+              IconButton(
+                  onPressed: () {
+                    cameraState.when(
+                        onPhotoMode: (picState) => picState.takePhoto());
+                  },
+                  icon: const Icon(
+                    Icons.camera,
+                    color: Colors.white,
+                    size: 72,
+                  )),
             SizedBox(
               width: 45,
               child: StreamBuilder<MediaCapture?>(
