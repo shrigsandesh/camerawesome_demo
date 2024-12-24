@@ -24,7 +24,7 @@ class _PhotoCaptureButtonState extends State<PhotoCaptureButton> {
           alignment: Alignment.center,
           children: [
             // Circular Progress Indicator
-            const SizedBox(
+            SizedBox(
               width: 80,
               height: 80,
               child: CircularProgressIndicator(
@@ -32,7 +32,7 @@ class _PhotoCaptureButtonState extends State<PhotoCaptureButton> {
                 strokeWidth: 4,
                 backgroundColor: Colors.white,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Colors.white,
+                  Colors.grey.shade300,
                 ),
               ),
             ),

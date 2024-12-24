@@ -1,10 +1,10 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
-import 'package:camerawesome_demo/expandable_zoom_widget.dart';
 import 'package:camerawesome_demo/grid_overlay.dart';
 import 'package:camerawesome_demo/top_control_widget.dart';
 import 'package:camerawesome_demo/utils/file_util.dart';
 import 'package:camerawesome_demo/widgets/photo_capture_button.dart';
 import 'package:camerawesome_demo/widgets/video_capture_button.dart';
+import 'package:camerawesome_demo/widgets/zoom_slider.dart';
 
 import 'package:flutter/material.dart';
 
@@ -34,11 +34,8 @@ class CustomCameraUi extends StatelessWidget {
                         child: Column(
                           children: [
                             const Spacer(),
-                            ExpandableZoomControl(
-                              state: cameraState,
-                            ),
-                            const SizedBox(
-                              height: 12,
+                            ZoomSlider(
+                              cameraState: cameraState,
                             ),
                           ],
                         ),

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
@@ -23,6 +24,9 @@ class DefaultCameraAswesomeUI extends StatelessWidget {
             if (sensors.length == 1) {
               final String filePath =
                   '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+              var capture = SingleCaptureRequest(filePath, sensors.first);
+              log("file path: ${capture.file?.path}");
               return SingleCaptureRequest(filePath, sensors.first);
             }
             // Separate pictures taken with front and back camera
