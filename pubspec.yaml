@@ -46,6 +46,8 @@ dependencies:
   path_provider: ^2.1.5
   cross_file: ^0.3.4+2
   percent_indicator: ^4.2.4
+  permission_handler: ^11.3.1
+  image_gallery_saver_plus: ^3.0.5
 
 dev_dependencies:
   flutter_test:

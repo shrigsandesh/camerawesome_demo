@@ -3,6 +3,7 @@ import 'package:camerawesome_demo/expandable_zoom_widget.dart';
 import 'package:camerawesome_demo/grid_overlay.dart';
 import 'package:camerawesome_demo/top_control_widget.dart';
 import 'package:camerawesome_demo/utils/file_util.dart';
+import 'package:camerawesome_demo/widgets/photo_capture_button.dart';
 import 'package:camerawesome_demo/widgets/video_capture_button.dart';
 
 import 'package:flutter/material.dart';
@@ -99,16 +100,9 @@ class _BottomControls extends StatelessWidget {
                 captureDuration: const Duration(seconds: 5),
               ),
             ] else
-              IconButton(
-                  onPressed: () {
-                    cameraState.when(
-                        onPhotoMode: (picState) => picState.takePhoto());
-                  },
-                  icon: const Icon(
-                    Icons.camera,
-                    color: Colors.white,
-                    size: 72,
-                  )),
+              PhotoCaptureButton(
+                state: cameraState,
+              ),
             SizedBox(
               width: 45,
               child: StreamBuilder<MediaCapture?>(
