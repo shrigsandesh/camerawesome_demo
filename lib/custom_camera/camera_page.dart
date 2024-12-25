@@ -1,4 +1,4 @@
-import 'package:camerawesome_demo/custom_camera/camera_content.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_content.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
