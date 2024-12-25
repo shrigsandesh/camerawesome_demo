@@ -45,9 +45,9 @@ dependencies:
   better_open_file: ^3.6.5
   path_provider: ^2.1.5
   cross_file: ^0.3.4+2
-  percent_indicator: ^4.2.4
   permission_handler: ^11.3.1
-  image_gallery_saver_plus: ^3.0.5
+  gal: ^2.3.1
+  device_info_plus: ^11.2.0
 
 dev_dependencies:
   flutter_test:

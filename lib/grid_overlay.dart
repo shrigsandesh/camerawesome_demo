@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class GridOverlay extends StatelessWidget {
+  const GridOverlay({super.key});
+
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(

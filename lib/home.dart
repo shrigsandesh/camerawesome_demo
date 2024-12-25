@@ -1,6 +1,7 @@
 import 'package:camerawesome_demo/barcode_scanner.dart';
 import 'package:camerawesome_demo/custom_ui.dart';
 import 'package:camerawesome_demo/default_ui.dart';
+import 'package:camerawesome_demo/services/permission_service.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatelessWidget {
@@ -25,12 +26,16 @@ class HomePage extends StatelessWidget {
             child: const Text("Barcode Scanner"),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const CustomCameraUi(),
-                ),
-              );
+            onPressed: () async {
+              final hasSavePermission =
+                  await PermissionService.requestMediaPermissions();
+              if (hasSavePermission && context.mounted) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CustomCameraUi(),
+                  ),
+                );
+              }
             },
             child: const Text("custom camera"),
           ),

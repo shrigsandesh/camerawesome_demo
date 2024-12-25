@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:io';
+
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/grid_overlay.dart';
 import 'package:camerawesome_demo/top_control_widget.dart';
@@ -7,6 +10,8 @@ import 'package:camerawesome_demo/widgets/video_capture_button.dart';
 import 'package:camerawesome_demo/widgets/zoom_slider.dart';
 
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CustomCameraUi extends StatelessWidget {
   const CustomCameraUi({super.key});
@@ -15,6 +20,18 @@ class CustomCameraUi extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: CameraAwesomeBuilder.custom(
+        onMediaCaptureEvent: (media) async {
+          if (media.captureRequest.path != null) {
+            if (media.isPicture) {
+              await Gal.putImage(media.captureRequest.path!,
+                  album: "Fishtechy");
+            }
+            if (media.isVideo) {
+              await Gal.putVideo(media.captureRequest.path!,
+                  album: "Fishtechy");
+            }
+          }
+        },
         builder: (cameraState, preview) {
           return Column(
             children: [
@@ -41,7 +58,7 @@ class CustomCameraUi extends StatelessWidget {
                         ),
                       ),
                     ),
-                    GridOverlay(),
+                    const GridOverlay(),
                   ],
                 ),
               ),
@@ -61,7 +78,28 @@ class CustomCameraUi extends StatelessWidget {
             ],
           );
         },
-        saveConfig: SaveConfig.photoAndVideo(),
+        saveConfig: SaveConfig.photoAndVideo(photoPathBuilder: (sensors) async {
+          final Directory extDir = await getTemporaryDirectory();
+          final testDir = await Directory(
+            '${extDir.path}/camerawesome',
+          ).create(recursive: true);
+          if (sensors.length == 1) {
+            final String filePath =
+                '${testDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+            log("filepath : $filePath");
+
+            return SingleCaptureRequest(filePath, sensors.first);
+          }
+          // Separate pictures taken with front and back camera
+          return MultipleCaptureRequest(
+            {
+              for (final sensor in sensors)
+                sensor:
+                    '${testDir.path}/${sensor.position == SensorPosition.front ? 'front_' : "back_"}${DateTime.now().millisecondsSinceEpoch}.jpg',
+            },
+          );
+        }),
       ),
     );
   }
