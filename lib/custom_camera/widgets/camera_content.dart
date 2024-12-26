@@ -1,11 +1,13 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/padding_painter.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_action_widget.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/camera_action_widget.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/info_popup.dart';
 import 'package:flutter/material.dart';
 
 class CameraContent extends StatelessWidget {
-  const CameraContent({super.key});
+  const CameraContent({super.key, required this.pageController});
+
+  final PageController pageController;
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +103,10 @@ class CameraContent extends StatelessWidget {
             ),
             Expanded(
               flex: 1,
-              child: CameraActionWidget(cameraState: state),
+              child: CameraActionWidget(
+                cameraState: state,
+                pageController: pageController,
+              ),
             ),
           ],
         );

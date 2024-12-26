@@ -32,13 +32,15 @@ class InfoPopup extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconTextRow(
-                    text: 'For Accurate Measurements',
+                    text1: 'For Accurate',
+                    text2: 'Measurements',
                   ),
                   SizedBox(
                     height: 10.0,
                   ),
                   IconTextRow(
-                    text: 'You should keep fish inside white boundary.',
+                    text1: 'You should',
+                    text2: 'keep fish inside white boundary.',
                     icon: Icon(
                       Icons.check_box_rounded,
                       color: Color(0xffD1D2D3),
@@ -49,7 +51,8 @@ class InfoPopup extends StatelessWidget {
                     height: 10.0,
                   ),
                   IconTextRow(
-                    text: 'And PROOF BALL should be inside the yellow box.',
+                    text1: 'And PROOF',
+                    text2: 'BALL should be inside the yellow box.',
                     icon: Icon(
                       Icons.check_box_rounded,
                       color: Color(0xffD1D2D3),
@@ -70,37 +73,43 @@ class IconTextRow extends StatelessWidget {
   const IconTextRow({
     super.key,
     this.icon,
-    required this.text,
+    required this.text1,
+    required this.text2,
   });
 
   final Widget? icon;
-  final String text;
+  final String text1;
+  final String text2;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2.0),
-          child: icon ?? const SizedBox.shrink(),
-        ),
-        const SizedBox(
-          width: 2.0,
-        ),
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                text,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 2.0),
+              child: icon ?? const SizedBox.shrink(),
+            ),
+            if (icon != null)
+              const SizedBox(
+                width: 2.0,
+              ),
+            Flexible(
+              child: Text(
+                text1,
                 style: icon != null ? context.bodyMedium : context.titleMedium,
                 //text color : sub text color,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+        Text(
+          text2,
+          style: icon != null ? context.bodyMedium : context.titleMedium,
+        )
       ],
     );
   }
