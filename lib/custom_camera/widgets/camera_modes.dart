@@ -7,6 +7,7 @@ class CustomCameraModes extends StatefulWidget {
   final List<CaptureMode> availableModes;
   final CaptureMode? initialMode;
   final VoidCallback on3DVideoTapped;
+  final int initialIndex;
 
   const CustomCameraModes({
     super.key,
@@ -14,6 +15,7 @@ class CustomCameraModes extends StatefulWidget {
     required this.availableModes,
     required this.initialMode,
     required this.on3DVideoTapped,
+    this.initialIndex = 0,
   });
 
   @override
@@ -28,9 +30,7 @@ class _CustomCameraModesState extends State<CustomCameraModes> {
   @override
   void initState() {
     super.initState();
-    _index = widget.initialMode != null
-        ? widget.availableModes.indexOf(widget.initialMode!)
-        : 0;
+    _index = widget.initialIndex;
     _pageController =
         PageController(viewportFraction: 0.25, initialPage: _index);
   }
@@ -121,7 +121,7 @@ class _CustomCameraModesState extends State<CustomCameraModes> {
                       ),
                     ),
                     onTap: () {
-                      widget.onChangeCameraRequest(CaptureMode.photo);
+                      widget.onChangeCameraRequest(CaptureMode.video);
                       _pageController.animateToPage(
                         1,
                         curve: Curves.easeIn,

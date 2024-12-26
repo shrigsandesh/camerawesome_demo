@@ -2,7 +2,9 @@ import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/padding_painter.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/camera_action_widget.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/info_popup.dart';
+import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 
 class CameraContent extends StatelessWidget {
   const CameraContent({super.key, required this.pageController});
@@ -16,15 +18,17 @@ class CameraContent extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //camera section
             Expanded(
               flex: 4,
               child: Stack(
                 children: [
+                  //outer painted region
                   CustomPaint(
                     painter: PaddingPainter(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 30.0, vertical: 40.0),
-                        color: Colors.blue.shade300.withOpacity(.7),
+                        color: Colors.white.withOpacity(.74), //paint color
                         borderRadius: 36.0),
                     child: Stack(
                       children: [
@@ -40,6 +44,7 @@ class CameraContent extends StatelessWidget {
                       ],
                     ),
                   ),
+                  //yellow boundary
                   Center(
                     child: Container(
                       margin: const EdgeInsets.symmetric(
@@ -52,13 +57,18 @@ class CameraContent extends StatelessWidget {
                   Align(
                     alignment: Alignment.topCenter,
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(39.0, 10.0, 0.0, 10.0),
+                      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 4.0, 0.0),
                       child: Row(
                         children: [
-                          const Text(
-                            "Make sure the PROOF BALL is inside yellow boundary ",
-                            overflow: TextOverflow.visible,
-                            style: TextStyle(fontSize: 12),
+                          Flexible(
+                            child: Text(
+                              "Make sure the PROOF BALL is inside yellow boundary ",
+                              overflow: TextOverflow.visible,
+                              textAlign: TextAlign.center,
+                              style: context.bodyMedium.copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500),
+                            ),
                           ),
                           InkWell(
                               onTap: () {
@@ -67,17 +77,11 @@ class CameraContent extends StatelessWidget {
                                   builder: (context) => const InfoPopup(),
                                 );
                               },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        width: 2, color: Colors.blue.shade300)),
-                                child: Icon(
-                                  Icons.question_mark_outlined,
-                                  color: Colors.blue.shade300,
-                                  size: 12,
-                                ),
-                              ))
+                              child: SvgPicture.asset(
+                                'assets/question.svg',
+                                height: 18.0,
+                                width: 18.0,
+                              )),
                         ],
                       ),
                     ),
@@ -101,6 +105,7 @@ class CameraContent extends StatelessWidget {
                 ],
               ),
             ),
+            //camera control section at bottom
             Expanded(
               flex: 1,
               child: CameraActionWidget(

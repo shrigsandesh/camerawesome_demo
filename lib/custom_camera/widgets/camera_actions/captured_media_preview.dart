@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
@@ -42,31 +41,8 @@ class CapturedMediaPreview extends StatelessWidget {
   Widget _buildMedia(MediaCapture? mediaCapture, CameraState state) {
     switch (mediaCapture?.status) {
       case MediaCaptureStatus.capturing:
-        if (mediaCapture?.isVideo ?? false) {
-          return InkWell(
-            onTap: () {
-              state.when(onVideoRecordingMode: (vState) {
-                log("on recording mode");
-                if (mediaCapture?.isRecordingVideo ?? false) {
-                  vState.pauseRecording(mediaCapture!);
-                } else {
-                  vState.resumeRecording(mediaCapture!);
-                }
-              }, onVideoMode: (videoState) {
-                log("on video mode");
-
-                // videoState.captureState.is
-              }, onPreviewMode: (pmode) {
-                log("on video mode");
-              });
-            },
-            child: Icon(
-              (mediaCapture?.isRecordingVideo ?? false)
-                  ? Icons.pause
-                  : Icons.play_arrow,
-              color: Colors.white,
-            ),
-          );
+        if (mediaCapture?.isRecordingVideo ?? false) {
+          return const SizedBox.shrink();
         }
         return Center(
           child: Padding(
@@ -105,7 +81,7 @@ class CapturedMediaPreview extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
                 border: Border.all(
-                  width: 1,
+                  width: .5,
                   color: Colors.white,
                 ),
                 borderRadius: BorderRadius.circular(10.0)),
