@@ -26,38 +26,28 @@ class InfoPopup extends StatelessWidget {
             const SizedBox(
               width: 20.0,
             ),
-            const Expanded(
+            Expanded(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconTextRow(
-                    text1: 'For Accurate',
-                    text2: 'Measurements',
+                  Text(
+                    'For Accurate Measurements',
+                    style: context.titleMedium,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
-                  IconTextRow(
-                    text1: 'You should',
-                    text2: 'keep fish inside white boundary.',
-                    icon: Icon(
-                      Icons.check_box_rounded,
-                      color: Color(0xffD1D2D3),
-                      size: 18.0,
-                    ),
+                  Text(
+                    '☑️ You should keep fish inside white boundary.',
+                    style: context.bodyMedium,
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 10.0,
                   ),
-                  IconTextRow(
-                    text1: 'And PROOF',
-                    text2: 'BALL should be inside the yellow box.',
-                    icon: Icon(
-                      Icons.check_box_rounded,
-                      color: Color(0xffD1D2D3),
-                      size: 18.0,
-                    ),
+                  Text(
+                    '☑️ And PROOF BALL should be inside the yellow box.',
+                    style: context.bodyMedium,
                   ),
                 ],
               ),
@@ -65,52 +55,6 @@ class InfoPopup extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class IconTextRow extends StatelessWidget {
-  const IconTextRow({
-    super.key,
-    this.icon,
-    required this.text1,
-    required this.text2,
-  });
-
-  final Widget? icon;
-  final String text1;
-  final String text2;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 2.0),
-              child: icon ?? const SizedBox.shrink(),
-            ),
-            if (icon != null)
-              const SizedBox(
-                width: 2.0,
-              ),
-            Flexible(
-              child: Text(
-                text1,
-                style: icon != null ? context.bodyMedium : context.titleMedium,
-                //text color : sub text color,
-              ),
-            ),
-          ],
-        ),
-        Text(
-          text2,
-          style: icon != null ? context.bodyMedium : context.titleMedium,
-        )
-      ],
     );
   }
 }
