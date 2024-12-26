@@ -1,6 +1,7 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/padding_painter.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_action_widget.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/info_popup.dart';
 import 'package:flutter/material.dart';
 
 class CameraContent extends StatelessWidget {
@@ -58,7 +59,12 @@ class CameraContent extends StatelessWidget {
                             style: TextStyle(fontSize: 12),
                           ),
                           InkWell(
-                              onTap: () {},
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const InfoPopup(),
+                                );
+                              },
                               child: Container(
                                 decoration: BoxDecoration(
                                     shape: BoxShape.circle,
