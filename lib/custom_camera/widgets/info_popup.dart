@@ -32,13 +32,13 @@ class InfoPopup extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   IconTextRow(
-                    title: 'For Accurate Measurements',
+                    text: 'For Accurate Measurements',
                   ),
                   SizedBox(
                     height: 10.0,
                   ),
                   IconTextRow(
-                    title: 'You should keep fish inside white boundary.',
+                    text: 'You should keep fish inside white boundary.',
                     icon: Icon(
                       Icons.check_box_rounded,
                       color: Color(0xffD1D2D3),
@@ -49,7 +49,7 @@ class InfoPopup extends StatelessWidget {
                     height: 10.0,
                   ),
                   IconTextRow(
-                    title: 'And PROOF BALL should be inside the yellow box.',
+                    text: 'And PROOF BALL should be inside the yellow box.',
                     icon: Icon(
                       Icons.check_box_rounded,
                       color: Color(0xffD1D2D3),
@@ -70,11 +70,11 @@ class IconTextRow extends StatelessWidget {
   const IconTextRow({
     super.key,
     this.icon,
-    required this.title,
+    required this.text,
   });
 
   final Widget? icon;
-  final String title;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +94,7 @@ class IconTextRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                title,
+                text,
                 style: icon != null ? context.bodyMedium : context.titleMedium,
                 //text color : sub text color,
               ),
