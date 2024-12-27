@@ -48,58 +48,61 @@ class _VideoCaptureButtonState extends State<VideoCaptureButton> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_isRecording) ...[
-              const SizedBox(
-                height: 10.0,
-              ),
-              Text(
-                _formattedTimer(),
-                style: context.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16.0,
+    return AwesomeOrientedWidget(
+      rotateWithDevice: _isRecording,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isRecording) ...[
+                const SizedBox(
+                  height: 10.0,
                 ),
+                Text(
+                  _formattedTimer(),
+                  style: context.headlineMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16.0,
+                  ),
+                ),
+              ],
+              if (!_isRecording) const SizedBox(height: 20.0),
+              InkWell(
+                onTap: () {
+                  widget.cameraState.when(onVideoMode: (videoCameraState) {
+                    // Start recording
+                    videoCameraState.startRecording();
+                    setState(() {
+                      _isRecording = true;
+                    });
+                    _startTimer();
+                  }, onVideoRecordingMode: (videoRecordingCameraState) {
+                    // Stop recording
+                    videoRecordingCameraState.stopRecording();
+                    setState(() {
+                      _isRecording = false;
+                    });
+                    _stopTimer();
+                  });
+                },
+                child: _isRecording
+                    ? SvgPicture.asset(
+                        'assets/stop_video.svg',
+                        height: 48.0,
+                        width: 48.0,
+                      )
+                    : SvgPicture.asset(
+                        'assets/video_lens.svg',
+                        height: 48.0,
+                        width: 48.0,
+                      ),
               ),
             ],
-            if (!_isRecording) const SizedBox(height: 20.0),
-            InkWell(
-              onTap: () {
-                widget.cameraState.when(onVideoMode: (videoCameraState) {
-                  // Start recording
-                  videoCameraState.startRecording();
-                  setState(() {
-                    _isRecording = true;
-                  });
-                  _startTimer();
-                }, onVideoRecordingMode: (videoRecordingCameraState) {
-                  // Stop recording
-                  videoRecordingCameraState.stopRecording();
-                  setState(() {
-                    _isRecording = false;
-                  });
-                  _stopTimer();
-                });
-              },
-              child: _isRecording
-                  ? SvgPicture.asset(
-                      'assets/stop_video.svg',
-                      height: 48.0,
-                      width: 48.0,
-                    )
-                  : SvgPicture.asset(
-                      'assets/video_lens.svg',
-                      height: 48.0,
-                      width: 48.0,
-                    ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }
