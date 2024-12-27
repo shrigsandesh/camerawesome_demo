@@ -42,7 +42,6 @@ class _VideoCaptureButtonState extends State<VideoCaptureButton> {
 
   @override
   void dispose() {
-    _stopTimer();
     super.dispose();
   }
 
