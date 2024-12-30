@@ -1,9 +1,9 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/animated_capture_button.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/captured_media_preview.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/video_capture_button.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_capture_button.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_modes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class CameraActionWidget extends StatelessWidget {
   const CameraActionWidget({
@@ -51,24 +51,9 @@ class CameraActionWidget extends StatelessWidget {
                   ),
                 ),
                 if (cameraState.captureMode == CaptureMode.video) ...[
-                  VideoCaptureButton(cameraState: cameraState),
+                  AnimatedCaptureButton(cameraState: cameraState),
                 ] else
-                  Padding(
-                    padding: const EdgeInsets.only(top: 20.0),
-                    child: InkWell(
-                      onTap: () {
-                        //TODO: after capturing picture
-                        cameraState.when(
-                          onPhotoMode: (cameraState) => cameraState.takePhoto(),
-                        );
-                      },
-                      child: SvgPicture.asset(
-                        'assets/photo_lens.svg',
-                        height: 48.0,
-                        width: 48.0,
-                      ),
-                    ),
-                  ),
+                  PhotoCaptureButton(cameraState: cameraState),
                 const SizedBox(
                   width: 48,
                 )
@@ -83,9 +68,6 @@ class CameraActionWidget extends StatelessWidget {
                 //   ),
                 // ),
               ],
-            ),
-            const SizedBox(
-              height: 12.0,
             ),
             if (!(cameraState.captureState?.isRecordingVideo ?? false) ||
                 cameraState.captureMode == CaptureMode.photo)
