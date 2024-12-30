@@ -171,9 +171,7 @@ class _BoundaryInfoBox extends StatelessWidget {
             onTap: () {
               showDialog(
                 context: context,
-                builder: (context) => InfoPopup(
-                  orientation: orientation,
-                ),
+                builder: (context) => const InfoPopup(),
               );
             },
             child: SvgPicture.asset(

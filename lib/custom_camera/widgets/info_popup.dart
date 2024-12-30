@@ -1,20 +1,15 @@
+import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
 class InfoPopup extends StatelessWidget {
-  const InfoPopup({super.key, required this.orientation});
-
-  final Orientation orientation;
+  const InfoPopup({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: orientation == Orientation.portrait
-          ? _body(context, Orientation.portrait)
-          : RotatedBox(
-              quarterTurns: 1,
-              child: _body(context, Orientation.landscape),
-            ),
+      child:
+          AwesomeOrientedWidget(child: _body(context, Orientation.landscape)),
     );
   }
 
