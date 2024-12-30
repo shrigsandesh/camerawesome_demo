@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
-import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedCaptureButton extends StatefulWidget {
-  const AnimatedCaptureButton({super.key, required this.cameraState});
+  const AnimatedCaptureButton({
+    super.key,
+    required this.cameraState,
+    required this.onVideoRecord,
+  });
   final CameraState cameraState;
+  final void Function(String?) onVideoRecord;
 
   @override
   State<AnimatedCaptureButton> createState() => _AnimatedCaptureButtonState();
@@ -31,6 +35,7 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
       setState(() {
         _timerSeconds++;
       });
+      widget.onVideoRecord(_formattedTimer());
     });
   }
 
@@ -74,6 +79,7 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
                 _isRecording = false;
               });
               _stopTimer();
+              widget.onVideoRecord(_formattedTimer());
             });
           },
           child: AnimatedContainer(
@@ -103,19 +109,19 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
             ),
           ),
         ),
-        if (_isRecording)
-          AwesomeOrientedWidget(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 60.0 + 22.0),
-              child: Text(
-                _formattedTimer(),
-                style: context.headlineMedium.copyWith(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16.0,
-                ),
-              ),
-            ),
-          ),
+        // if (_isRecording)
+        //   AwesomeOrientedWidget(
+        //     child: Padding(
+        //       padding: const EdgeInsets.only(bottom: 60.0 + 22.0),
+        //       child: Text(
+        //         _formattedTimer(),
+        //         style: context.headlineMedium.copyWith(
+        //           fontWeight: FontWeight.w700,
+        //           fontSize: 16.0,
+        //         ),
+        //       ),
+        //     ),
+        //   ),
       ],
     );
   }

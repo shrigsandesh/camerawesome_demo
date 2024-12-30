@@ -45,20 +45,17 @@ class CapturedMediaPreview extends StatelessWidget {
           return const SizedBox.shrink();
         }
         return Center(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Platform.isIOS
-                ? const CupertinoActivityIndicator(
+          child: Platform.isIOS
+              ? const CupertinoActivityIndicator(
+                  color: Colors.white,
+                )
+              : const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
                     color: Colors.white,
-                  )
-                : const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.0,
-                    ),
+                    strokeWidth: 2.0,
                   ),
-          ),
+                ),
         );
       case MediaCaptureStatus.success:
         if (mediaCapture!.isPicture) {

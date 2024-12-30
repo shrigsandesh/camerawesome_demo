@@ -10,10 +10,12 @@ class CameraActionWidget extends StatelessWidget {
     super.key,
     required this.cameraState,
     required this.pageController,
+    required this.onVideoRecord,
   });
 
   final CameraState cameraState;
   final PageController pageController;
+  final void Function(String?) onVideoRecord;
 
   @override
   Widget build(BuildContext context) {
@@ -23,35 +25,52 @@ class CameraActionWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
           children: [
+            const SizedBox(height: 10.0),
+            CustomCameraModes(
+              initialIndex:
+                  cameraState.captureMode == CaptureMode.photo ? 0 : 1,
+              availableModes: const [CaptureMode.photo, CaptureMode.video],
+              onChangeCameraRequest: (captureMode) {
+                cameraState.setState(captureMode);
+              },
+              initialMode: CaptureMode.photo,
+              on3DVideoTapped: () {
+                pageController.animateToPage(
+                  1,
+                  curve: Curves.easeIn,
+                  duration: const Duration(milliseconds: 200),
+                );
+              },
+            ),
             const SizedBox(
-              height: 10,
+              height: 8.0,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 22.0),
-                  child: SizedBox.square(
-                    dimension: 46.0,
-                    child: StreamBuilder<MediaCapture?>(
-                      stream: cameraState.captureState$,
-                      builder: (_, snapshot) {
-                        if (snapshot.data == null) {
-                          return const SizedBox.shrink();
-                        }
-                        return CapturedMediaPreview(
-                          mediaCapture: snapshot.data!,
-                          onMediaTap: (MediaCapture mediaCapture) {
-                            //TODO: when clicked on preview image
-                          },
-                          state: cameraState,
-                        );
-                      },
-                    ),
+                SizedBox.square(
+                  dimension: 46.0,
+                  child: StreamBuilder<MediaCapture?>(
+                    stream: cameraState.captureState$,
+                    builder: (_, snapshot) {
+                      if (snapshot.data == null) {
+                        return const SizedBox.shrink();
+                      }
+                      return CapturedMediaPreview(
+                        mediaCapture: snapshot.data!,
+                        onMediaTap: (MediaCapture mediaCapture) {
+                          //TODO: when clicked on preview image
+                        },
+                        state: cameraState,
+                      );
+                    },
                   ),
                 ),
                 if (cameraState.captureMode == CaptureMode.video) ...[
-                  AnimatedCaptureButton(cameraState: cameraState),
+                  AnimatedCaptureButton(
+                    cameraState: cameraState,
+                    onVideoRecord: onVideoRecord,
+                  ),
                 ] else
                   PhotoCaptureButton(cameraState: cameraState),
                 const SizedBox(
@@ -69,24 +88,6 @@ class CameraActionWidget extends StatelessWidget {
                 // ),
               ],
             ),
-            if (!(cameraState.captureState?.isRecordingVideo ?? false) ||
-                cameraState.captureMode == CaptureMode.photo)
-              CustomCameraModes(
-                initialIndex:
-                    cameraState.captureMode == CaptureMode.photo ? 0 : 1,
-                availableModes: const [CaptureMode.photo, CaptureMode.video],
-                onChangeCameraRequest: (captureMode) {
-                  cameraState.setState(captureMode);
-                },
-                initialMode: CaptureMode.photo,
-                on3DVideoTapped: () {
-                  pageController.animateToPage(
-                    1,
-                    curve: Curves.easeIn,
-                    duration: const Duration(milliseconds: 200),
-                  );
-                },
-              ),
           ],
         ),
       ),

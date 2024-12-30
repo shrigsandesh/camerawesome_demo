@@ -9,11 +9,17 @@ import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
-class CameraContent extends StatelessWidget {
+class CameraContent extends StatefulWidget {
   const CameraContent({super.key, required this.pageController});
 
   final PageController pageController;
 
+  @override
+  State<CameraContent> createState() => _CameraContentState();
+}
+
+class _CameraContentState extends State<CameraContent> {
+  String? _time;
   @override
   Widget build(BuildContext context) {
     return OrientationWrapperWidget(builder: (context, orientation) {
@@ -23,9 +29,22 @@ class CameraContent extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              //app bar section
+              Expanded(
+                  flex: 2,
+                  child: ColoredBox(
+                    color: Colors.black,
+                    child: _time != null &&
+                            (state.captureState?.isRecordingVideo ?? false)
+                        ? _VideoRecordingTimer(
+                            isRecordingVideo:
+                                (state.captureState?.isRecordingVideo ?? false),
+                            time: _time ?? "")
+                        : const SizedBox.expand(),
+                  )),
               //camera section
               Expanded(
-                flex: 4,
+                flex: 15,
                 child: Stack(
                   children: [
                     //outer painted region
@@ -114,10 +133,15 @@ class CameraContent extends StatelessWidget {
               ),
               //camera control section at bottom
               Expanded(
-                flex: 1,
+                flex: 3,
                 child: CameraActionWidget(
                   cameraState: state,
-                  pageController: pageController,
+                  pageController: widget.pageController,
+                  onVideoRecord: (currentTime) {
+                    setState(() {
+                      _time = currentTime;
+                    });
+                  },
                 ),
               ),
             ],
@@ -159,6 +183,40 @@ class _BoundaryInfoBox extends StatelessWidget {
               width: 18.0,
             )),
       ],
+    );
+  }
+}
+
+class _VideoRecordingTimer extends StatelessWidget {
+  const _VideoRecordingTimer(
+      {required this.isRecordingVideo, required this.time});
+
+  final bool isRecordingVideo;
+  final String time;
+
+  @override
+  Widget build(BuildContext context) {
+    return AwesomeOrientedWidget(
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 500),
+        opacity: isRecordingVideo ? 1.0 : 0.2,
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.only(top: 20.0),
+            padding: const EdgeInsets.all(4.0),
+            decoration: BoxDecoration(
+                color: Colors.red, borderRadius: BorderRadius.circular(12.0)),
+            child: Align(
+                widthFactor: 1,
+                heightFactor: 1,
+                alignment: Alignment.center,
+                child: Text(
+                  time,
+                  style: context.bodyMedium,
+                )),
+          ),
+        ),
+      ),
     );
   }
 }
