@@ -58,6 +58,13 @@ class CameraContent extends StatelessWidget {
                             CameraConstants.borderRadius,
                           ),
                         ),
+                        child: ResponsiveTextBox(
+                          orientation: orientation,
+                          text: "Proofball boundary",
+                          landscapePadding: const EdgeInsets.only(left: 20.0),
+                          portraitPadding: const EdgeInsets.only(left: 20.0),
+                          landscapeAlignment: Alignment.topRight,
+                        ),
                       ),
                     ),
 
@@ -80,35 +87,7 @@ class CameraContent extends StatelessWidget {
                               ),
                             ),
                           ),
-                    //
-                    ResponsiveTextBox(
-                      text: 'Proof Ball Boundary',
-                      orientation: orientation,
-                      landscapeAlignment: Alignment.topRight,
-                      //in landscape mode:
-                      //since widget is rotated:
-                      //*left padding=> original top padding of portrait mode,
-                      //*top padding=> original right padding of portrait mode
-                      landscapePadding: const EdgeInsets.fromLTRB(
-                          CameraConstants.outerVerticalSpacing +
-                              CameraConstants.innerVerticalSpacing +
-                              15.0, //left padding*
-                          CameraConstants.outerHorizontalSpacing +
-                              CameraConstants.innerHorizontalSpacing +
-                              10.0, //top padding*
-                          0,
-                          0.0),
-                      //
-                      portraitPadding: const EdgeInsets.fromLTRB(
-                          CameraConstants.outerHorizontalSpacing +
-                              CameraConstants.innerHorizontalSpacing +
-                              20.0,
-                          0,
-                          0,
-                          CameraConstants.outerVerticalSpacing +
-                              CameraConstants.innerVerticalSpacing +
-                              3.0),
-                    ),
+
                     ResponsiveTextBox(
                       text: 'Fish boundary',
                       orientation: orientation,

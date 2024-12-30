@@ -31,9 +31,8 @@ class CameraActionWidget extends StatelessWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(top: 22.0),
-                  child: SizedBox(
-                    width: 46.0,
-                    height: 46.0,
+                  child: SizedBox.square(
+                    dimension: 46.0,
                     child: StreamBuilder<MediaCapture?>(
                       stream: cameraState.captureState$,
                       builder: (_, snapshot) {
