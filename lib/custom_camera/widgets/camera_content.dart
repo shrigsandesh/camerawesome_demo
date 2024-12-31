@@ -1,7 +1,8 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/padding_painter.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/camera_action_widget.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/info_popup.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/orientation_wrapper.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/responsive_text_box.dart';
@@ -40,7 +41,7 @@ class _CameraContentState extends State<CameraContent> {
                             isRecordingVideo:
                                 (state.captureState?.isRecordingVideo ?? false),
                             time: _time ?? "")
-                        : const SizedBox.expand(),
+                        : TopActionBar(state: state),
                   )),
               //camera section
               Expanded(
@@ -134,7 +135,7 @@ class _CameraContentState extends State<CameraContent> {
               //camera control section at bottom
               Expanded(
                 flex: 3,
-                child: CameraActionWidget(
+                child: BottomActionBar(
                   cameraState: state,
                   pageController: widget.pageController,
                   onVideoRecord: (currentTime) {

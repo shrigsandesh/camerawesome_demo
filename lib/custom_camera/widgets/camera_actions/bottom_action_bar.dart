@@ -5,8 +5,8 @@ import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_cap
 import 'package:camerawesome_demo/custom_camera/widgets/camera_modes.dart';
 import 'package:flutter/material.dart';
 
-class CameraActionWidget extends StatelessWidget {
-  const CameraActionWidget({
+class BottomActionBar extends StatelessWidget {
+  const BottomActionBar({
     super.key,
     required this.cameraState,
     required this.pageController,
