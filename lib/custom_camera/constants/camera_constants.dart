@@ -19,3 +19,7 @@ class CameraConstants {
     );
   }
 }
+
+enum FishtechyCameraMode { photo, video, threeD }
+
+enum FishtechyCameraPreviewMode { photoAndvideo, threeD }

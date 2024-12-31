@@ -1,22 +1,27 @@
 import 'dart:async';
-
-import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 
-class AnimatedCaptureButton extends StatefulWidget {
-  const AnimatedCaptureButton({
+class RecrodButton extends StatefulWidget {
+  const RecrodButton({
     super.key,
-    required this.cameraState,
-    required this.onVideoRecord,
+    required this.onVideoRecording,
+    required this.onRecordStart,
+    required this.onRecordStopped,
+    this.isRecording = false,
   });
-  final CameraState cameraState;
-  final void Function(String?) onVideoRecord;
+
+  final VoidCallback onRecordStart;
+  final VoidCallback onRecordStopped;
+
+  final bool isRecording;
+
+  final void Function(String?) onVideoRecording;
 
   @override
-  State<AnimatedCaptureButton> createState() => _AnimatedCaptureButtonState();
+  State<RecrodButton> createState() => _RecrodButtonState();
 }
 
-class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
+class _RecrodButtonState extends State<RecrodButton> {
   bool _isRecording = false;
   int _timerSeconds = 0; // Timer value
   Timer? _timer;
@@ -25,7 +30,7 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
   void initState() {
     super.initState();
     setState(() {
-      _isRecording = widget.cameraState.captureState?.isRecordingVideo ?? false;
+      _isRecording = widget.isRecording;
     });
   }
 
@@ -35,7 +40,7 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
       setState(() {
         _timerSeconds++;
       });
-      widget.onVideoRecord(_formattedTimer());
+      widget.onVideoRecording(_formattedTimer());
     });
   }
 
@@ -45,6 +50,7 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
     setState(() {
       _timerSeconds = 0;
     });
+    widget.onVideoRecording(_formattedTimer());
   }
 
   String _formattedTimer() {
@@ -65,22 +71,19 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
       children: [
         InkWell(
           onTap: () {
-            widget.cameraState.when(onVideoMode: (videoCameraState) {
-              // Start recording
-              videoCameraState.startRecording();
-              setState(() {
-                _isRecording = true;
-              });
-              _startTimer();
-            }, onVideoRecordingMode: (videoRecordingCameraState) {
-              // Stop recording
-              videoRecordingCameraState.stopRecording();
+            if (_isRecording) {
+              widget.onRecordStopped();
               setState(() {
                 _isRecording = false;
               });
               _stopTimer();
-              widget.onVideoRecord(_formattedTimer());
-            });
+            } else {
+              setState(() {
+                _isRecording = true;
+              });
+              _startTimer();
+              widget.onRecordStart();
+            }
           },
           child: AnimatedContainer(
             padding: const EdgeInsets.all(6.0),
@@ -109,19 +112,6 @@ class _AnimatedCaptureButtonState extends State<AnimatedCaptureButton> {
             ),
           ),
         ),
-        // if (_isRecording)
-        //   AwesomeOrientedWidget(
-        //     child: Padding(
-        //       padding: const EdgeInsets.only(bottom: 60.0 + 22.0),
-        //       child: Text(
-        //         _formattedTimer(),
-        //         style: context.headlineMedium.copyWith(
-        //           fontWeight: FontWeight.w700,
-        //           fontSize: 16.0,
-        //         ),
-        //       ),
-        //     ),
-        //   ),
       ],
     );
   }

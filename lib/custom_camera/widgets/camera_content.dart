@@ -1,8 +1,7 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/padding_painter.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
+
 import 'package:camerawesome_demo/custom_camera/widgets/info_popup.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/orientation_wrapper.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/responsive_text_box.dart';
@@ -11,9 +10,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 class CameraContent extends StatefulWidget {
-  const CameraContent({super.key, required this.pageController});
+  const CameraContent({
+    super.key,
+  });
 
-  final PageController pageController;
+  // final PageController pageController;
 
   @override
   State<CameraContent> createState() => _CameraContentState();
@@ -31,18 +32,18 @@ class _CameraContentState extends State<CameraContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               //app bar section
-              Expanded(
-                  flex: 2,
-                  child: ColoredBox(
-                    color: Colors.black,
-                    child: _time != null &&
-                            (state.captureState?.isRecordingVideo ?? false)
-                        ? _VideoRecordingTimer(
-                            isRecordingVideo:
-                                (state.captureState?.isRecordingVideo ?? false),
-                            time: _time ?? "")
-                        : TopActionBar(state: state),
-                  )),
+              // Expanded(
+              //     flex: 2,
+              //     child: ColoredBox(
+              //       color: Colors.black,
+              //       child: _time != null &&
+              //               (state.captureState?.isRecordingVideo ?? false)
+              //           ? _VideoRecordingTimer(
+              //               isRecordingVideo:
+              //                   (state.captureState?.isRecordingVideo ?? false),
+              //               time: _time ?? "")
+              //           : TopActionBar(state: state),
+              //     )),
               //camera section
               Expanded(
                 flex: 15,
@@ -133,18 +134,18 @@ class _CameraContentState extends State<CameraContent> {
                 ),
               ),
               //camera control section at bottom
-              Expanded(
-                flex: 3,
-                child: BottomActionBar(
-                  cameraState: state,
-                  pageController: widget.pageController,
-                  onVideoRecord: (currentTime) {
-                    setState(() {
-                      _time = currentTime;
-                    });
-                  },
-                ),
-              ),
+              // Expanded(
+              //   flex: 3,
+              //   child: BottomActionBar(
+              //     cameraState: state,
+              //     pageController: widget.pageController,
+              //     onVideoRecord: (currentTime) {
+              //       setState(() {
+              //         _time = currentTime;
+              //       });
+              //     },
+              //   ),
+              // ),
             ],
           );
         },
@@ -184,40 +185,6 @@ class _BoundaryInfoBox extends StatelessWidget {
               width: 18.0,
             )),
       ],
-    );
-  }
-}
-
-class _VideoRecordingTimer extends StatelessWidget {
-  const _VideoRecordingTimer(
-      {required this.isRecordingVideo, required this.time});
-
-  final bool isRecordingVideo;
-  final String time;
-
-  @override
-  Widget build(BuildContext context) {
-    return AwesomeOrientedWidget(
-      child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 500),
-        opacity: isRecordingVideo ? 1.0 : 0.2,
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.only(top: 20.0),
-            padding: const EdgeInsets.all(4.0),
-            decoration: BoxDecoration(
-                color: Colors.red, borderRadius: BorderRadius.circular(12.0)),
-            child: Align(
-                widthFactor: 1,
-                heightFactor: 1,
-                alignment: Alignment.center,
-                child: Text(
-                  time,
-                  style: context.bodyMedium,
-                )),
-          ),
-        ),
-      ),
     );
   }
 }

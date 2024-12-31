@@ -2,18 +2,14 @@ import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
 
 class PhotoCaptureButton extends StatelessWidget {
-  const PhotoCaptureButton({super.key, required this.cameraState});
+  const PhotoCaptureButton({super.key, required this.onTap});
 
-  final CameraState cameraState;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return AwesomeBouncingWidget(
-      onTap: () {
-        cameraState.when(
-          onPhotoMode: (cameraState) => cameraState.takePhoto(),
-        );
-      },
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(6.0),
         height: 60.0,
