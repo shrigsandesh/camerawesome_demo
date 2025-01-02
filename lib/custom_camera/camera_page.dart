@@ -1,8 +1,10 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
-// import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/semi_circular_zoom_control.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/zoom_slider.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -28,6 +30,8 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
 
   static const _kAnimationDuration = Duration(milliseconds: 300);
   static const _kSwipeThreshold = 500.0;
+
+  final ValueNotifier<CameraState?> stateNotifier = ValueNotifier(null);
 
   @override
   void initState() {
@@ -175,20 +179,9 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         children: [
           Expanded(
               flex: 2,
-              child: ColoredBox(
-                color: Colors.black,
-                child: _recordingTime != null &&
-                        (_cameraState?.captureState?.isRecordingVideo ?? false)
-                    ? _VideoRecordingTimer(
-                        isRecordingVideo:
-                            (_cameraState?.captureState?.isRecordingVideo ??
-                                false),
-                        time: _recordingTime ?? "")
-                    :
-                    //  state != null
-                    //     ? TopActionBar(state: state)
-                    // :
-                    const SizedBox.expand(),
+              child: _buildTopActionBar(
+                _recordingTime,
+                _cameraState,
               )),
           Expanded(
             flex: 15,
@@ -207,6 +200,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                             setState(() {
                               _cameraState = camState;
                             });
+                            stateNotifier.value = camState;
                           });
                         },
                       ),
@@ -215,6 +209,12 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               ),
             ),
           ),
+          SemiCircularZoomControl(
+            maxZoom: 10,
+            divisions: 10,
+            onZoomChanged: (val) {},
+          ),
+          // if (_cameraState != null) ZoomSlider(cameraState: _cameraState!),
           Expanded(
             flex: 3,
             child: BottomActionBar(
@@ -269,4 +269,20 @@ class _VideoRecordingTimer extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildTopActionBar(String? recordingTime, CameraState? state) {
+  return ColoredBox(
+    color: Colors.black,
+    child: recordingTime != null &&
+            (state?.captureState?.isRecordingVideo ?? false)
+        ? _VideoRecordingTimer(
+            isRecordingVideo: (state?.captureState?.isRecordingVideo ?? false),
+            time: recordingTime)
+        : state != null
+            ? TopActionBar(
+                state: state,
+              )
+            : const SizedBox.expand(),
+  );
 }
