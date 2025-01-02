@@ -1,8 +1,7 @@
-import 'dart:developer';
-
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
+// import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
@@ -15,81 +14,158 @@ class CameraPage extends StatefulWidget {
 }
 
 class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
-  late PageController previewPgController;
-  late PageController modePgController;
+  late final PageController _previewController;
+  late final PageController _modeController;
 
   List<FishtechyCameraMode> availableModes = <FishtechyCameraMode>[];
   List<FishtechyCameraPreviewMode> availablePreviews =
       <FishtechyCameraPreviewMode>[];
-  CameraState? state;
-  FishtechyCameraMode selectedMode = FishtechyCameraMode.photo;
+  CameraState? _cameraState;
+  FishtechyCameraMode _selectedMode = FishtechyCameraMode.photo;
 
+  String? _recordingTime;
   int _currentIndex = 0;
-  String? _time;
 
-  void _onHorizontalDrag(DragUpdateDetails details) {
-    if (details.delta.dx > 0) {
-      // Swipe right logic remains same
-      if (_currentIndex > 0) {
-        _currentIndex--;
-        if (selectedMode == FishtechyCameraMode.threeD) {
-          setState(() {
-            selectedMode = FishtechyCameraMode.video;
-          });
-          state?.setState(CaptureMode.video);
-          previewPgController.animateToPage(0,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
-        } else if (selectedMode == FishtechyCameraMode.video) {
-          setState(() {
-            selectedMode = FishtechyCameraMode.photo;
-          });
-          state?.setState(CaptureMode.photo);
-        }
-      }
-    } else if (details.delta.dx < 0) {
-      // Swipe left
-
-      var currentMode = selectedMode;
-      if (_currentIndex < 2) {
-        _currentIndex++;
-        // log(selectedMode.toString());
-        if (currentMode == FishtechyCameraMode.video) {
-          log("left swipe when video here");
-
-          currentMode = FishtechyCameraMode.threeD;
-
-          previewPgController.animateToPage(1,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut);
-        } else if (currentMode == FishtechyCameraMode.photo) {
-          log("left swipe when photo here");
-
-          currentMode = FishtechyCameraMode.video;
-
-          state?.setState(CaptureMode.video);
-        }
-        setState(() {
-          selectedMode = currentMode;
-        });
-      }
-    }
-  }
+  static const _kAnimationDuration = Duration(milliseconds: 300);
+  static const _kSwipeThreshold = 500.0;
 
   @override
   void initState() {
     super.initState();
     availableModes = FishtechyCameraMode.values;
     availablePreviews = FishtechyCameraPreviewMode.values;
-    previewPgController = PageController();
-    modePgController = PageController(viewportFraction: 0.25, initialPage: 0);
+    _previewController = PageController();
+    _modeController = PageController(viewportFraction: 0.25, initialPage: 0);
   }
 
   @override
   void dispose() {
     super.dispose();
-    previewPgController.dispose();
-    modePgController.dispose();
+    _previewController.dispose();
+    _modeController.dispose();
+  }
+
+  void _animateToPreview({
+    required int previewIndex,
+    required int modeIndex,
+    bool previewOnly = false,
+    bool modesOnly = false,
+  }) {
+    if (!modesOnly) {
+      _previewController.animateToPage(
+        previewIndex,
+        duration: _kAnimationDuration,
+        curve: Curves.easeInOut,
+      );
+    }
+    if (!previewOnly) {
+      _modeController.animateToPage(
+        modeIndex,
+        duration: _kAnimationDuration,
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _onHorizontalDrag(DragEndDetails? details) {
+    if (details == null) return;
+
+    if (details.primaryVelocity! > _kSwipeThreshold) {
+      // Swipe right
+      if (_currentIndex > 0) {
+        _currentIndex--;
+        switch (_selectedMode) {
+          case FishtechyCameraMode.threeD:
+            setState(() {
+              _selectedMode = FishtechyCameraMode.video;
+            });
+            _cameraState?.setState(CaptureMode.video);
+            _animateToPreview(previewIndex: 0, modeIndex: 1);
+            break;
+
+          case FishtechyCameraMode.video:
+            setState(() {
+              _selectedMode = FishtechyCameraMode.photo;
+            });
+            _cameraState?.setState(CaptureMode.photo);
+            _animateToPreview(previewIndex: 0, modeIndex: 0);
+            break;
+          default:
+        }
+      }
+    } else {
+      // Swipe left
+
+      var currentMode = _selectedMode;
+
+      if (_currentIndex < 2) {
+        _currentIndex++;
+
+        switch (_selectedMode) {
+          case FishtechyCameraMode.video:
+            currentMode = FishtechyCameraMode.threeD;
+            _animateToPreview(previewIndex: 1, modeIndex: 1);
+            break;
+
+          case FishtechyCameraMode.photo:
+            currentMode = FishtechyCameraMode.video;
+            _cameraState?.setState(CaptureMode.video);
+            _modeController.animateToPage(1,
+                duration: _kAnimationDuration, curve: Curves.easeInOut);
+            break;
+          default:
+        }
+
+        setState(() {
+          _selectedMode = currentMode;
+        });
+      }
+    }
+  }
+
+  void _animateToPage(int pageIndex) {
+    if (_previewController.hasClients) {
+      _previewController.animateToPage(
+        pageIndex,
+        duration: const Duration(microseconds: 400),
+        curve: Curves.linear,
+      );
+    }
+  }
+
+  void _updateCameraState(FishtechyCameraMode mode) {
+    if (mode == FishtechyCameraMode.video) {
+      _cameraState?.setState(CaptureMode.video);
+      _animateToPage(0);
+    } else if (mode == FishtechyCameraMode.photo) {
+      _cameraState?.setState(CaptureMode.photo);
+      _animateToPage(0);
+    } else {
+      _animateToPage(1);
+    }
+  }
+
+  void _onSelectionModeChanged(int index) {
+    setState(() {
+      _selectedMode = availableModes[index];
+    });
+    _updateCameraState(_selectedMode);
+  }
+
+  void _onModeTapped(FishtechyCameraMode tab) {
+    setState(() {
+      _selectedMode = availableModes[tab.index];
+    });
+
+    if (_modeController.hasClients) {
+      _modeController.animateToPage(
+        tab.index,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.linear,
+      );
+    }
+
+    _updateCameraState(_selectedMode);
   }
 
   @override
@@ -101,55 +177,37 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               flex: 2,
               child: ColoredBox(
                 color: Colors.black,
-                child: _time != null &&
-                        (state?.captureState?.isRecordingVideo ?? false)
+                child: _recordingTime != null &&
+                        (_cameraState?.captureState?.isRecordingVideo ?? false)
                     ? _VideoRecordingTimer(
                         isRecordingVideo:
-                            (state?.captureState?.isRecordingVideo ?? false),
-                        time: _time ?? "")
+                            (_cameraState?.captureState?.isRecordingVideo ??
+                                false),
+                        time: _recordingTime ?? "")
                     :
                     //  state != null
-                    //     ? TopActionBar(state: state!)
-
+                    //     ? TopActionBar(state: state)
                     // :
                     const SizedBox.expand(),
               )),
           Expanded(
             flex: 15,
             child: GestureDetector(
-              onHorizontalDragUpdate: _onHorizontalDrag,
+              onHorizontalDragEnd: _onHorizontalDrag,
               child: PageView(
                 physics: const NeverScrollableScrollPhysics(),
-                controller: previewPgController,
-                onPageChanged: (index) {
-                  if (index == 0) {
-                    if (selectedMode == FishtechyCameraMode.video) {
-                      previewPgController.animateToPage(
-                        1,
-                        duration: const Duration(microseconds: 400),
-                        curve: Curves.linear,
-                      );
-                    }
-                  }
-                  if (index == 1) {
-                    if (selectedMode == FishtechyCameraMode.photo) {
-                      previewPgController.animateToPage(
-                        0,
-                        duration: const Duration(microseconds: 400),
-                        curve: Curves.linear,
-                      );
-                      state?.setState(CaptureMode.video);
-                    }
-                  }
-                },
+                controller: _previewController,
                 children: availablePreviews
                     .map(
                       (mode) => CameraAwesomeModePreviewWrapper(
-                        cameraMode: selectedMode,
+                        cameraMode: _selectedMode,
                         mode: mode,
                         onStateChanged: (camState) {
-                          state = camState;
-                          log(state.toString());
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            setState(() {
+                              _cameraState = camState;
+                            });
+                          });
                         },
                       ),
                     )
@@ -160,80 +218,15 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           Expanded(
             flex: 3,
             child: BottomActionBar(
-              modePgController: modePgController,
+              modePgController: _modeController,
               availableModes: availableModes,
-              selectedMode: selectedMode,
-              cameraState: state,
-              onSelectionModeChanged: (index) {
-                setState(() {
-                  selectedMode = availableModes[index];
-                });
-                if (selectedMode == FishtechyCameraMode.video) {
-                  previewPgController.animateToPage(
-                    0,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                  state?.setState(CaptureMode.video);
-                } else if (selectedMode == FishtechyCameraMode.photo) {
-                  previewPgController.animateToPage(
-                    0,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                  state?.setState(CaptureMode.photo);
-                } else {
-                  previewPgController.animateToPage(
-                    1,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                }
-              },
-              onModeTapped: (tab) {
-                setState(() {
-                  selectedMode = availableModes[tab.index];
-                });
-                if (modePgController.hasClients) {
-                  modePgController.animateToPage(tab.index,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.linear);
-                }
-                if (selectedMode == FishtechyCameraMode.video) {
-                  if (!previewPgController.hasClients) {
-                    return;
-                  }
-                  previewPgController.animateToPage(
-                    0,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                  state?.setState(CaptureMode.video);
-                } else if (selectedMode == FishtechyCameraMode.photo) {
-                  if (!previewPgController.hasClients) {
-                    return;
-                  }
-                  previewPgController.animateToPage(
-                    0,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                  state?.setState(CaptureMode.photo);
-                } else {
-                  if (!previewPgController.hasClients) {
-                    return;
-                  }
-                  previewPgController.animateToPage(
-                    1,
-                    duration: const Duration(microseconds: 400),
-                    curve: Curves.linear,
-                  );
-                }
-              },
+              selectedMode: _selectedMode,
+              cameraState: _cameraState,
+              onSelectionModeChanged: _onSelectionModeChanged,
+              onModeTapped: _onModeTapped,
               onVideoRecording: (String? timer) {
-                log(timer.toString());
                 setState(() {
-                  _time = timer;
+                  _recordingTime = timer;
                 });
               },
             ),

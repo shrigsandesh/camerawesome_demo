@@ -42,6 +42,7 @@ dependencies:
   device_info_plus: ^11.2.0
   camerawesome: ^2.1.0
   flutter_svg: ^2.0.16
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:

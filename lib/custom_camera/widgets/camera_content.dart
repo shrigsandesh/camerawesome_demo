@@ -14,14 +14,11 @@ class CameraContent extends StatefulWidget {
     super.key,
   });
 
-  // final PageController pageController;
-
   @override
   State<CameraContent> createState() => _CameraContentState();
 }
 
 class _CameraContentState extends State<CameraContent> {
-  String? _time;
   @override
   Widget build(BuildContext context) {
     return OrientationWrapperWidget(builder: (context, orientation) {
@@ -31,19 +28,6 @@ class _CameraContentState extends State<CameraContent> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              //app bar section
-              // Expanded(
-              //     flex: 2,
-              //     child: ColoredBox(
-              //       color: Colors.black,
-              //       child: _time != null &&
-              //               (state.captureState?.isRecordingVideo ?? false)
-              //           ? _VideoRecordingTimer(
-              //               isRecordingVideo:
-              //                   (state.captureState?.isRecordingVideo ?? false),
-              //               time: _time ?? "")
-              //           : TopActionBar(state: state),
-              //     )),
               //camera section
               Expanded(
                 flex: 15,
@@ -133,19 +117,6 @@ class _CameraContentState extends State<CameraContent> {
                   ],
                 ),
               ),
-              //camera control section at bottom
-              // Expanded(
-              //   flex: 3,
-              //   child: BottomActionBar(
-              //     cameraState: state,
-              //     pageController: widget.pageController,
-              //     onVideoRecord: (currentTime) {
-              //       setState(() {
-              //         _time = currentTime;
-              //       });
-              //     },
-              //   ),
-              // ),
             ],
           );
         },

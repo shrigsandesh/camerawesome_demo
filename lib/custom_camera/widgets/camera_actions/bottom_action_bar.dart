@@ -46,30 +46,33 @@ class BottomActionBar extends StatelessWidget {
                     onPageChanged: onSelectionModeChanged,
                     children: availableModes
                         .map(
-                          (tab) => AnimatedOpacity(
-                            duration: const Duration(milliseconds: 300),
-                            opacity: tab.name == selectedMode.name ? 1 : 0.2,
-                            child: AwesomeBouncingWidget(
-                              child: Center(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 2),
-                                  child: Text(
-                                    tab.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      shadows: [
-                                        Shadow(
-                                          blurRadius: 4,
-                                          color: Colors.black,
-                                        )
-                                      ],
+                          (tab) => Center(
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 300),
+                              opacity: tab.name == selectedMode.name ? 1 : 0.2,
+                              child: AwesomeBouncingWidget(
+                                child: Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: Text(
+                                      tab.name == 'threeD'
+                                          ? "3D Video"
+                                          : capitalizeFirstLetter(tab.name),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        shadows: [
+                                          Shadow(
+                                            blurRadius: 4,
+                                            color: Colors.black,
+                                          )
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
+                                onTap: () => onModeTapped(tab),
                               ),
-                              onTap: () => onModeTapped(tab),
                             ),
                           ),
                         )
@@ -79,71 +82,79 @@ class BottomActionBar extends StatelessWidget {
               ),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              SizedBox.square(
-                dimension: 46.0,
-                child: cameraState != null
-                    ? StreamBuilder<MediaCapture?>(
-                        stream: cameraState?.captureState$,
-                        builder: (_, snapshot) {
-                          if (snapshot.data == null) {
-                            return const SizedBox.shrink();
-                          }
-                          return CapturedMediaPreview(
-                            mediaCapture: snapshot.data!,
-                            onMediaTap: (MediaCapture mediaCapture) {
-                              //TODO: when clicked on preview image
-                            },
-                            state: cameraState!,
-                          );
-                        },
-                      )
-                    : null,
-              ),
-              if (selectedMode == FishtechyCameraMode.threeD) ...[
-                RecrodButton(
-                  onVideoRecording: (time) {},
-                  onRecordStart: () {
-                    //onstart
-                  },
-                  onRecordStopped: () {
-                    //onstop
-                  },
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox.square(
+                  dimension: 46.0,
+                  child: cameraState != null
+                      ? StreamBuilder<MediaCapture?>(
+                          stream: cameraState?.captureState$,
+                          builder: (_, snapshot) {
+                            if (snapshot.data == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return CapturedMediaPreview(
+                              mediaCapture: snapshot.data!,
+                              onMediaTap: (MediaCapture mediaCapture) {
+                                //TODO: when clicked on preview image
+                              },
+                              state: cameraState!,
+                            );
+                          },
+                        )
+                      : null,
                 ),
-              ] else if (selectedMode == FishtechyCameraMode.video) ...[
-                RecrodButton(
-                  onVideoRecording: onVideoRecording,
-                  onRecordStart: () {
-                    log(cameraState.toString());
-                    cameraState?.when(onVideoMode: (videoCameraState) {
-                      videoCameraState.startRecording();
-                    });
-                  },
-                  onRecordStopped: () {
-                    cameraState?.when(
-                        onVideoRecordingMode: (videoRecordingCameraState) {
-                      // Stop recording
-                      videoRecordingCameraState.stopRecording();
-                    });
-                  },
-                ),
-              ] else
-                PhotoCaptureButton(
-                  onTap: () {
-                    cameraState?.when(
-                      onPhotoMode: (cameraState) => cameraState.takePhoto(),
-                    );
-                  },
-                ),
-              const SizedBox(
-                width: 48,
-              )
-            ],
+                if (selectedMode == FishtechyCameraMode.threeD) ...[
+                  RecrodButton(
+                    onVideoRecording: (time) {},
+                    onRecordStart: () {
+                      //onstart
+                    },
+                    onRecordStopped: () {
+                      //onstop
+                    },
+                  ),
+                ] else if (selectedMode == FishtechyCameraMode.video) ...[
+                  RecrodButton(
+                    onVideoRecording: onVideoRecording,
+                    onRecordStart: () {
+                      log(cameraState.toString());
+                      cameraState?.when(onVideoMode: (videoCameraState) {
+                        videoCameraState.startRecording();
+                      });
+                    },
+                    onRecordStopped: () {
+                      cameraState?.when(
+                          onVideoRecordingMode: (videoRecordingCameraState) {
+                        // Stop recording
+                        videoRecordingCameraState.stopRecording();
+                      });
+                    },
+                  ),
+                ] else
+                  PhotoCaptureButton(
+                    onTap: () {
+                      cameraState?.when(
+                        onPhotoMode: (cameraState) => cameraState.takePhoto(),
+                      );
+                    },
+                  ),
+                const SizedBox(
+                  width: 48,
+                )
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+}
+
+String capitalizeFirstLetter(String word) {
+  if (word.isEmpty) return word; // Return the word if it's empty
+  return word[0].toUpperCase() + word.substring(1);
 }
