@@ -3,8 +3,6 @@ import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart'
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/semi_circular_zoom_control.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/zoom_slider.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -209,11 +207,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-          SemiCircularZoomControl(
-            maxZoom: 10,
-            divisions: 10,
-            onZoomChanged: (val) {},
-          ),
+
           // if (_cameraState != null) ZoomSlider(cameraState: _cameraState!),
           Expanded(
             flex: 3,
