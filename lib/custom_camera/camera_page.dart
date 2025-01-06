@@ -184,40 +184,46 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               )),
           Expanded(
             flex: 15,
-            child: GestureDetector(
-              onHorizontalDragEnd: _onHorizontalDrag,
-              child: PageView(
-                physics: const NeverScrollableScrollPhysics(),
-                controller: _previewController,
-                children: availablePreviews
-                    .map(
-                      (mode) => CameraAwesomeModePreviewWrapper(
-                        cameraMode: _selectedMode,
-                        mode: mode,
-                        onStateChanged: (camState) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            setState(() {
-                              _cameraState = camState;
-                            });
-                          });
-                        },
-                      ),
-                    )
-                    .toList(),
-              ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                GestureDetector(
+                  onHorizontalDragEnd: _onHorizontalDrag,
+                  child: PageView(
+                    physics: const NeverScrollableScrollPhysics(),
+                    controller: _previewController,
+                    children: availablePreviews
+                        .map(
+                          (mode) => CameraAwesomeModePreviewWrapper(
+                            cameraMode: _selectedMode,
+                            mode: mode,
+                            onStateChanged: (camState) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                setState(() {
+                                  _cameraState = camState;
+                                });
+                              });
+                            },
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                if (_cameraState != null)
+                  Positioned(
+                    bottom: 0,
+                    child: ZoomBar(
+                      onZoomChanged: (val) {
+                        setState(() {
+                          zoomlevel = val;
+                        });
+                      },
+                      cameraState: _cameraState,
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (_cameraState != null)
-            ColoredBox(
-                color: Colors.black.withOpacity(.8),
-                child: ZoomBar(
-                  onZoomChanged: (val) {
-                    setState(() {
-                      zoomlevel = val;
-                    });
-                  },
-                  cameraState: _cameraState,
-                )),
           Expanded(
             flex: 3,
             child: BottomActionBar(
