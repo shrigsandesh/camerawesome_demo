@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 
 final PageStorageBucket _storageBucket = PageStorageBucket();
 
-class ZoomBar extends StatefulWidget {
-  const ZoomBar({
+class ZoomBarScale extends StatefulWidget {
+  const ZoomBarScale({
     super.key,
     required this.onZoomChanged,
     required this.cameraState,
@@ -16,10 +16,10 @@ class ZoomBar extends StatefulWidget {
   final CameraState? cameraState;
 
   @override
-  State<ZoomBar> createState() => _ZoomBarState();
+  State<ZoomBarScale> createState() => _ZoomBarScaleState();
 }
 
-class _ZoomBarState extends State<ZoomBar> {
+class _ZoomBarScaleState extends State<ZoomBarScale> {
   bool _isOpen = false;
   double? _zoomLevel = 1.0;
   final GlobalKey<_ZoomScaleBarState> _zoomScaleBarKey =

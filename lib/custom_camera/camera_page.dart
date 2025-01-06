@@ -3,7 +3,7 @@ import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart'
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/zoom_bar.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/zoom_bar_scale.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -212,7 +212,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                 if (_cameraState != null)
                   Positioned(
                     bottom: 0,
-                    child: ZoomBar(
+                    child: ZoomBarScale(
                       onZoomChanged: (val) {
                         setState(() {
                           zoomlevel = val;
