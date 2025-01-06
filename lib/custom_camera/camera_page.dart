@@ -3,6 +3,7 @@ import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart'
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/zoom_bar.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -29,7 +30,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   static const _kAnimationDuration = Duration(milliseconds: 300);
   static const _kSwipeThreshold = 500.0;
 
-  final ValueNotifier<CameraState?> stateNotifier = ValueNotifier(null);
+  double? zoomlevel;
 
   @override
   void initState() {
@@ -198,7 +199,6 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                             setState(() {
                               _cameraState = camState;
                             });
-                            stateNotifier.value = camState;
                           });
                         },
                       ),
@@ -207,8 +207,17 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-
-          // if (_cameraState != null) ZoomSlider(cameraState: _cameraState!),
+          if (_cameraState != null)
+            ColoredBox(
+                color: Colors.black.withOpacity(.8),
+                child: ZoomBar(
+                  onZoomChanged: (val) {
+                    setState(() {
+                      zoomlevel = val;
+                    });
+                  },
+                  cameraState: _cameraState,
+                )),
           Expanded(
             flex: 3,
             child: BottomActionBar(
