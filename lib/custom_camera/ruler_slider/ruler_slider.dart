@@ -169,6 +169,41 @@ class RulerSliderState extends State<RulerSlider>
         vsync: this, duration: const Duration(milliseconds: 300));
   }
 
+  void scrollToValue(double targetValue) {
+    if (targetValue > widget.maxValue) return;
+
+    setState(() {
+      double totalScrollableWidth = widget.maxValue * widget.tickSpacing;
+      double targetPosition = widget.labelInterval / 2 -
+          (targetValue / widget.maxValue) * totalScrollableWidth;
+
+      // Create and start the animation
+      _animation = Tween<double>(
+        begin: _rulerPosition,
+        end: targetPosition,
+      ).animate(
+        CurvedAnimation(
+          parent: _animationController,
+          curve: Curves.easeOut,
+        ),
+      )..addListener(() {
+          setState(() {
+            _rulerPosition = _animation.value;
+            _value = (((widget.labelInterval / 2 - _rulerPosition) /
+                        totalScrollableWidth) *
+                    widget.maxValue)
+                .clamp(widget.minValue, widget.maxValue);
+
+            if (widget.onChanged != null) {
+              widget.onChanged!(_value);
+            }
+          });
+        });
+
+      _animationController.forward(from: 0.0);
+    });
+  }
+
   @override
   void dispose() {
     _animationController.dispose();
@@ -226,7 +261,7 @@ class RulerSliderState extends State<RulerSlider>
           });
         }
       },
-      child: Container(
+      child: SizedBox(
         width: MediaQuery.of(context).size.width,
         height: widget.rulerHeight,
         child: Stack(
@@ -236,6 +271,7 @@ class RulerSliderState extends State<RulerSlider>
               size: Size(widget.labelInterval.toDouble(), widget.rulerHeight),
               painter: RulerPainter(
                   rulerPosition: _rulerPosition,
+                  minValue: widget.minValue,
                   maxValue: widget.maxValue,
                   value: _value,
                   selectedBarColor: widget.selectedBarColor,
@@ -255,7 +291,7 @@ class RulerSliderState extends State<RulerSlider>
               Positioned(
                 top: 0,
                 child: Text(
-                  _value.toStringAsFixed(1),
+                  (_value / 2).clamp(1, widget.maxValue).toStringAsFixed(1),
                   style: widget.valueTextStyle
                       .copyWith(color: widget.fixedLabelColor),
                 ),
@@ -285,6 +321,7 @@ class RulerSliderState extends State<RulerSlider>
 class RulerPainter extends CustomPainter {
   final double rulerPosition;
   final double maxValue;
+  final double minValue;
   final double value;
   final Color selectedBarColor;
   final Color unselectedBarColor;
@@ -302,6 +339,7 @@ class RulerPainter extends CustomPainter {
   final double barWidth;
 
   RulerPainter({
+    required this.minValue,
     required this.rulerPosition,
     required this.maxValue,
     required this.value,
