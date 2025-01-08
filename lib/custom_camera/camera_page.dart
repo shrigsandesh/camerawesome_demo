@@ -3,7 +3,7 @@ import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart'
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/zoom_bar_scale.dart';
+import 'package:camerawesome_demo/custom_camera/ruler_slider/ruler_zoom_slider.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -31,6 +31,16 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   static const _kSwipeThreshold = 500.0;
 
   double? zoomlevel;
+  double _baseZoom = 1.0;
+
+  double normalizeToUnitRange(double value) {
+    // Ensure the input value is within the expected range
+    if (value < 0.0) value = 0.0;
+    if (value > 20.0) value = 20.0;
+
+    // Normalize the value to the range [0.0, 1.0]
+    return value / 20.0;
+  }
 
   @override
   void initState() {
@@ -189,6 +199,18 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
               children: [
                 GestureDetector(
                   onHorizontalDragEnd: _onHorizontalDrag,
+                  onScaleStart: (_) {
+                    _baseZoom = zoomlevel ?? 1.0;
+                  },
+                  onScaleUpdate: (details) {
+                    if (_cameraState != null) {
+                      setState(() {
+                        zoomlevel = (_baseZoom * details.scale)
+                            .clamp(0.0, 1.0); // Limit zoom between 0.0 and 1.0
+                      });
+                      _cameraState?.sensorConfig.setZoom(zoomlevel!);
+                    }
+                  },
                   child: PageView(
                     physics: const NeverScrollableScrollPhysics(),
                     controller: _previewController,
@@ -211,16 +233,13 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                 ),
                 if (_cameraState != null)
                   Positioned(
-                    bottom: 0,
-                    child: ZoomBarScale(
-                      onZoomChanged: (val) {
-                        setState(() {
-                          zoomlevel = val;
-                        });
-                      },
-                      cameraState: _cameraState,
-                    ),
-                  ),
+                      bottom: 0,
+                      child: RulerZoomSlider(
+                        onChanged: (double value) {
+                          zoomlevel = normalizeToUnitRange(value);
+                          _cameraState?.sensorConfig.setZoom(zoomlevel!);
+                        },
+                      )),
               ],
             ),
           ),
