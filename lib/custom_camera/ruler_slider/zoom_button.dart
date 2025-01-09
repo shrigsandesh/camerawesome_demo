@@ -1,4 +1,3 @@
-import 'package:camerawesome_demo/custom_camera/ruler_slider/constants.dart';
 import 'package:camerawesome_demo/custom_camera/ruler_slider/ruler_zoom_slider_config.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
