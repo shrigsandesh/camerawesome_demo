@@ -115,35 +115,37 @@ class RulerSlider extends StatefulWidget {
   final TextStyle labelTextStyle;
   final double majorTickHeight;
   final double minorTickHeight;
-
-  const RulerSlider({
-    super.key,
-    this.minValue = 0.0,
-    this.maxValue = 100.0,
-    this.initialValue = 50.0,
-    this.rulerHeight = 100.0,
-    this.selectedBarColor = Colors.green,
-    this.unselectedBarColor = Colors.grey,
-    this.tickSpacing = 20.0,
-    this.valueTextStyle = const TextStyle(color: Colors.black, fontSize: 18),
-    this.labelBuilder,
-    this.onChanged,
-    this.showFixedBar = true,
-    this.fixedBarColor = Colors.red,
-    this.fixedBarWidth = 2.0,
-    this.fixedBarHeight = 60.0,
-    this.showFixedLabel = true,
-    this.fixedLabelColor = Colors.red,
-    this.scrollSensitivity = 0.5,
-    this.enableSnapping = false,
-    this.majorTickInterval = 10,
-    this.labelInterval = 10,
-    this.labelVerticalOffset = 25.0,
-    this.showBottomLabels = true,
-    this.labelTextStyle = const TextStyle(color: Colors.black, fontSize: 12),
-    this.majorTickHeight = 20.0,
-    this.minorTickHeight = 10.0,
-  });
+  final Widget Function(double value)? displayValueBuilder;
+  final double disValToZoomRatio;
+  const RulerSlider(
+      {super.key,
+      this.minValue = 0.0,
+      this.maxValue = 100.0,
+      this.initialValue = 50.0,
+      this.rulerHeight = 100.0,
+      this.selectedBarColor = Colors.green,
+      this.unselectedBarColor = Colors.grey,
+      this.tickSpacing = 20.0,
+      this.valueTextStyle = const TextStyle(color: Colors.black, fontSize: 18),
+      this.labelBuilder,
+      this.onChanged,
+      this.showFixedBar = true,
+      this.fixedBarColor = Colors.red,
+      this.fixedBarWidth = 2.0,
+      this.fixedBarHeight = 60.0,
+      this.showFixedLabel = true,
+      this.fixedLabelColor = Colors.red,
+      this.scrollSensitivity = 0.5,
+      this.enableSnapping = false,
+      this.majorTickInterval = 10,
+      this.labelInterval = 10,
+      this.labelVerticalOffset = 25.0,
+      this.showBottomLabels = true,
+      this.labelTextStyle = const TextStyle(color: Colors.black, fontSize: 12),
+      this.majorTickHeight = 20.0,
+      this.minorTickHeight = 10.0,
+      this.displayValueBuilder,
+      this.disValToZoomRatio = 1.0});
 
   @override
   RulerSliderState createState() => RulerSliderState();
@@ -290,11 +292,17 @@ class RulerSliderState extends State<RulerSlider>
             if (widget.showFixedLabel)
               Positioned(
                 top: 0,
-                child: Text(
-                  (_value / 2).clamp(1, widget.maxValue).toStringAsFixed(1),
-                  style: widget.valueTextStyle
-                      .copyWith(color: widget.fixedLabelColor),
-                ),
+                child: widget.displayValueBuilder != null
+                    ? widget
+                        .displayValueBuilder!(_value * widget.disValToZoomRatio)
+                    : Text(
+                        (_value * widget.disValToZoomRatio)
+                            .clamp(widget.minValue,
+                                widget.maxValue * widget.disValToZoomRatio)
+                            .toStringAsFixed(1),
+                        style: widget.valueTextStyle
+                            .copyWith(color: widget.fixedLabelColor),
+                      ),
               ),
             if (widget.showFixedBar)
               Positioned(
@@ -367,7 +375,7 @@ class RulerPainter extends CustomPainter {
       ..strokeWidth = barWidth;
     canvas.translate(rulerPosition, 0);
 
-    for (double i = 0; i <= maxValue; i += 1) {
+    for (double i = 1; i <= maxValue; i += 1) {
       double xPos = (i * tickSpacing);
       double tickHeight =
           (i % majorTickInterval == 0) ? majorTickHeight : minorTickHeight;

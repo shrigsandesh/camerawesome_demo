@@ -1,5 +1,6 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
+import 'package:camerawesome_demo/custom_camera/ruler_slider/ruler_zoom_slider_config.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/bottom_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/top_action_bar.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_awesomemode_preview_wrapper.dart';
@@ -233,13 +234,19 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                 ),
                 if (_cameraState != null)
                   Positioned(
-                      bottom: 0,
-                      child: RulerZoomSlider(
-                        onChanged: (double value) {
-                          zoomlevel = normalizeToUnitRange(value);
-                          _cameraState?.sensorConfig.setZoom(zoomlevel!);
-                        },
-                      )),
+                    bottom: 0,
+                    child: RulerZoomSlider(
+                      onChanged: (double value) {
+                        zoomlevel = normalizeToUnitRange(value);
+                        _cameraState?.sensorConfig.setZoom(zoomlevel!);
+                      },
+                      config: const RulerZoomSliderConfig(
+                        maxZoomBars: 15,
+                        maxDisplayValue: 10,
+                        minValue: 1.0,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
