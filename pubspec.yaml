@@ -43,6 +43,7 @@ dependencies:
   camerawesome: ^2.1.0
   flutter_svg: ^2.0.16
   carousel_slider: ^5.0.0
+  google_mlkit_object_detection: ^0.14.0
   
 dev_dependencies:
   flutter_test:

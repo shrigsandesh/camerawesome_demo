@@ -47,6 +47,15 @@ class TopActionBar extends StatelessWidget {
                     state: state!,
                   ),
                 ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                )
               ],
             )
           : null,

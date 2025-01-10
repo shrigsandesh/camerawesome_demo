@@ -4,6 +4,7 @@ import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/captured_media_preview.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_capture_button.dart';
+import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/prrofball_dropdown.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/record_button.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,7 @@ class BottomActionBar extends StatelessWidget {
     required this.onModeTapped,
     this.cameraState,
     required this.onVideoRecording,
+    required this.onVideoStopped,
   });
 
   final PageController modePgController;
@@ -25,6 +27,7 @@ class BottomActionBar extends StatelessWidget {
   final void Function(int index) onSelectionModeChanged;
   final void Function(FishtechyCameraMode tab) onModeTapped;
   final void Function(String? timer) onVideoRecording;
+  final VoidCallback onVideoStopped;
 
   final CameraState? cameraState;
 
@@ -37,6 +40,7 @@ class BottomActionBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // if (!(cameraState?.captureState?.isRecordingVideo == true))
               Expanded(
                 child: SizedBox(
                   height: 32,
@@ -132,6 +136,7 @@ class BottomActionBar extends StatelessWidget {
                         // Stop recording
                         videoRecordingCameraState.stopRecording();
                       });
+                      onVideoStopped();
                     },
                   ),
                 ] else
@@ -142,8 +147,11 @@ class BottomActionBar extends StatelessWidget {
                       );
                     },
                   ),
-                const SizedBox(
+                SizedBox(
                   width: 48,
+                  child: ProofballDropdown(
+                      colors: const [Colors.orange, Colors.red],
+                      onChanged: (ball) {}),
                 )
               ],
             ),
