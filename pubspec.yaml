@@ -41,9 +41,8 @@ dependencies:
   permission_handler: ^11.3.1
   device_info_plus: ^11.2.0
   camerawesome: ^2.1.0
-  flutter_svg: ^2.0.16
-  carousel_slider: ^5.0.0
   google_mlkit_object_detection: ^0.14.0
+  gal: ^2.3.1
   
 dev_dependencies:
   flutter_test:
