@@ -17,6 +17,10 @@ class CameraContent extends StatefulWidget {
 }
 
 class _CameraContentState extends State<CameraContent> {
+  Rect? objRect;
+  String objLabel = '';
+  double objConfidence = 0.0;
+  Size imageSize = Size.zero;
   @override
   Widget build(BuildContext context) {
     return OrientationWrapperWidget(builder: (context, orientation) {
@@ -40,8 +44,9 @@ class _CameraContentState extends State<CameraContent> {
                         child: Container(
                           margin: CameraConstants.outerPadding,
                           decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(10.0)),
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
                         ),
                       ),
                     ],
