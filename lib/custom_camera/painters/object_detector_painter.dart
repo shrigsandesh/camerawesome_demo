@@ -1,96 +1,94 @@
+import 'dart:io';
+import 'dart:ui';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
 
-class BoundingBoxCoordinatesTranslator {
-  final Size imageSize;
-  final Size screenSize;
-  final EdgeInsets padding;
+import 'package:camerawesome_demo/custom_camera/utils/coordinate_translator.dart';
 
-  BoundingBoxCoordinatesTranslator({
-    required this.imageSize,
-    required this.screenSize,
-    this.padding = EdgeInsets.zero,
-  });
-
-  Rect translateRect(Rect rect) {
-    // Calculate scale factors
-    final double scaleX =
-        (screenSize.width - padding.left - padding.right) / imageSize.width;
-    final double scaleY =
-        (screenSize.height - padding.top - padding.bottom) / imageSize.height;
-
-    // Use the smaller scale to maintain aspect ratio
-    final double scale = math.min(scaleX, scaleY);
-
-    // Calculate translation to center the image
-    final double offsetX =
-        (screenSize.width - (imageSize.width * scale)) / 2 + padding.left;
-    final double offsetY =
-        (screenSize.height - (imageSize.height * scale)) / 2 + padding.top;
-
-    return Rect.fromLTRB(
-      rect.left * scale + offsetX,
-      rect.top * scale + offsetY,
-      rect.right * scale + offsetX,
-      rect.bottom * scale + offsetY,
-    );
-  }
-}
-
-// Modify your ObjectDetectorPainter
 class ObjectDetectorPainter extends CustomPainter {
-  final Rect rect;
-  final String label;
-  final double confidence;
-  final Size imageSize;
-  final Size screenSize;
-  final EdgeInsets padding;
+  ObjectDetectorPainter(
+    this._objects,
+    this.imageSize,
+    this.rotation,
+    this.isBackCamera,
+  );
 
-  ObjectDetectorPainter({
-    required this.rect,
-    required this.label,
-    required this.confidence,
-    required this.imageSize,
-    required this.screenSize,
-    this.padding = EdgeInsets.zero,
-  });
+  final List<DetectedObject> _objects;
+  final Size imageSize;
+  final InputImageRotation rotation;
+  final bool isBackCamera;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final translator = BoundingBoxCoordinatesTranslator(
-      imageSize: imageSize,
-      screenSize: screenSize,
-      padding: padding,
-    );
-
-    final scaledRect = translator.translateRect(rect);
-
-    final paint = Paint()
+    final Paint paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..color = Colors.red;
+      ..strokeWidth = 3.0
+      ..color = Colors.lightGreenAccent;
 
-    canvas.drawRect(scaledRect, paint);
+    final Paint background = Paint()..color = Color(0x99000000);
 
-    // Draw label
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: '$label (${(confidence * 100).toStringAsFixed(0)}%)',
-        style: const TextStyle(
-          color: Colors.red,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(scaledRect.left, scaledRect.top - 20),
-    );
+    for (final DetectedObject detectedObject in _objects) {
+      final ParagraphBuilder builder = ParagraphBuilder(
+        ParagraphStyle(
+            textAlign: TextAlign.left,
+            fontSize: 16,
+            textDirection: TextDirection.ltr),
+      );
+      builder.pushStyle(
+          ui.TextStyle(color: Colors.lightGreenAccent, background: background));
+      if (detectedObject.labels.isNotEmpty) {
+        final label = detectedObject.labels
+            .reduce((a, b) => a.confidence > b.confidence ? a : b);
+        builder.addText('${label.text} ${label.confidence}\n');
+      }
+      builder.pop();
+
+      final left = translateX(
+        detectedObject.boundingBox.left,
+        size,
+        imageSize,
+        rotation,
+        isBackCamera,
+      );
+      final top = translateY(
+        detectedObject.boundingBox.top,
+        size,
+        imageSize,
+        rotation,
+        isBackCamera,
+      );
+      final right = translateX(
+        detectedObject.boundingBox.right,
+        size,
+        imageSize,
+        rotation,
+        isBackCamera,
+      );
+      final bottom = translateY(
+        detectedObject.boundingBox.bottom,
+        size,
+        imageSize,
+        rotation,
+        isBackCamera,
+      );
+
+      canvas.drawRect(
+        Rect.fromLTRB(left, top, right, bottom),
+        paint,
+      );
+
+      canvas.drawParagraph(
+        builder.build()
+          ..layout(ParagraphConstraints(
+            width: (right - left).abs(),
+          )),
+        Offset(Platform.isAndroid && isBackCamera ? right : left, top),
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(ObjectDetectorPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

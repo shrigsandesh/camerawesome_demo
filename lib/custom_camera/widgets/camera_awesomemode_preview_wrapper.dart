@@ -12,7 +12,7 @@ import 'package:gal/gal.dart';
 import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
 import 'package:path_provider/path_provider.dart';
 
-import '../../services/file_util.dart';
+import '../utils/file_util.dart';
 
 class CameraAwesomeModePreviewWrapper extends StatefulWidget {
   const CameraAwesomeModePreviewWrapper({
@@ -33,10 +33,9 @@ class CameraAwesomeModePreviewWrapper extends StatefulWidget {
 
 class _CameraAwesomeModePreviewWrapperState
     extends State<CameraAwesomeModePreviewWrapper> {
-  Rect? objRect;
-  String objLabel = '';
-  double objConfidence = 0.0;
+  List<DetectedObject> detectedobj = [];
   Size imageSize = Size.zero;
+  InputImageRotation inputImageRotation = InputImageRotation.rotation0deg;
 
   /// Handles image analysis and object detection.
   Future<void> _onImageAnalysis(AnalysisImage img) async {
@@ -63,61 +62,49 @@ class _CameraAwesomeModePreviewWrapperState
     // Perform object detection
     final List<DetectedObject> objects =
         await objectDetector.processImage(inputImage);
-    log('Detected objects: ${objects.length}');
 
-    for (DetectedObject detectedObject in objects) {
-      // Log detected bounding box
-      final rect = detectedObject.boundingBox;
-      log("Bounding Box: ${rect.left}, ${rect.top}, ${rect.right}, ${rect.bottom}");
-
-      objRect = rect;
-
-      for (Label label in detectedObject.labels) {
-        setState(() {
-          objLabel = label.text;
-          objConfidence = label.confidence;
-        });
-        log('Label: ${label.text}, Confidence: ${label.confidence}');
-      }
-    }
+    setState(() {
+      detectedobj = objects;
+      inputImageRotation =
+          inputImage.metadata?.rotation ?? InputImageRotation.rotation0deg;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return switch (widget.mode) {
       FishtechyCameraPreviewMode.photoAndvideo => Scaffold(
-          body: CameraAwesomeBuilder.custom(
-            onImageForAnalysis: _onImageAnalysis,
-            imageAnalysisConfig: AnalysisConfig(
-              androidOptions: const AndroidAnalysisOptions.nv21(width: 250),
-              cupertinoOptions: const CupertinoAnalysisOptions.bgra8888(),
-              autoStart: true,
-              maxFramesPerSecond: 20,
-            ),
-            builder: (state, preview) {
-              widget.onStateChanged(state);
-              return CustomPaint(
-                painter: objRect != null && objConfidence > 0.0
-                    ? ObjectDetectorPainter(
-                        rect: objRect!,
-                        label: objLabel,
-                        confidence: objConfidence,
-                        imageSize: imageSize,
-                        screenSize: MediaQuery.of(context).size,
-                        padding: CameraConstants.outerPadding,
-                      )
-                    : null,
-                child: const CameraContent(),
-              );
-            },
-            onMediaCaptureEvent: _handleMediaCaptureEvent,
-            saveConfig: SaveConfig.photoAndVideo(
-              initialCaptureMode: widget.cameraMode == FishtechyCameraMode.photo
-                  ? CaptureMode.photo
-                  : CaptureMode.video,
-              photoPathBuilder: _buildPhotoPath,
-            ),
-          ),
+          body: LayoutBuilder(builder: (context, constraint) {
+            return CameraAwesomeBuilder.custom(
+              onImageForAnalysis: _onImageAnalysis,
+              imageAnalysisConfig: AnalysisConfig(
+                androidOptions: const AndroidAnalysisOptions.nv21(width: 384),
+                cupertinoOptions: const CupertinoAnalysisOptions.bgra8888(),
+                autoStart: true,
+                maxFramesPerSecond: 20,
+              ),
+              builder: (state, preview) {
+                widget.onStateChanged(state);
+                return CustomPaint(
+                  // painter: objRect != null && objConfidence > 0.0
+                  // ?
+                  painter: ObjectDetectorPainter(detectedobj, imageSize,
+                      inputImageRotation, preview.isBackCamera)
+                  // : null
+                  ,
+                  child: const CameraContent(),
+                );
+              },
+              onMediaCaptureEvent: _handleMediaCaptureEvent,
+              saveConfig: SaveConfig.photoAndVideo(
+                initialCaptureMode:
+                    widget.cameraMode == FishtechyCameraMode.photo
+                        ? CaptureMode.photo
+                        : CaptureMode.video,
+                photoPathBuilder: _buildPhotoPath,
+              ),
+            );
+          }),
         ),
       FishtechyCameraPreviewMode.threeD => const _3DCameraWidget(),
     };
