@@ -1,15 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
-import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
 
 import 'package:camerawesome_demo/custom_camera/widgets/orientation_wrapper.dart';
 import 'package:camerawesome_demo/extensions/mlkit_extension.dart';
 import 'package:camerawesome_demo/services/file_util.dart';
 import 'package:flutter/material.dart';
-import 'package:google_mlkit_object_detection/google_mlkit_object_detection.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:image/image.dart' as img;
 
 class CameraContent extends StatefulWidget {
   const CameraContent({
@@ -28,59 +30,101 @@ class _CameraContentState extends State<CameraContent> {
   String objLabel = '';
   double objConfidence = 0.0;
   Size imageSize = Size.zero;
+  late Interpreter pballInterpreter;
+  List input = [];
+  List output = [];
+  bool processing = false;
+
+  Uint8List? processedFile;
+
+  Future<void> processImage(AnalysisImage image) async {
+    if (processing) {
+      return;
+    }
+    setState(() {
+      processing = true;
+    });
+    try {
+      image.when(
+        nv21: (Nv21Image image) {
+          Uint8List rgbaData =
+              convertNV21ToBytes(image.width, image.height, image.bytes);
+
+          pballInterpreter = Interpreter.fromBuffer(rgbaData);
+          resizeImageToInput(imageBytes: rgbaData);
+          pballInterpreter.run(input, output);
+        },
+        yuv420: (image) {
+          image.toJpeg().then((jpeg) {
+            processedFile = jpeg.bytes;
+          });
+        },
+        bgra8888: (Bgra8888Image image) {
+          image.toJpeg().then((jpeg) {
+            processedFile = jpeg.bytes;
+          });
+        },
+        jpeg: (JpegImage image) {
+          processedFile = image.bytes;
+        },
+      );
+    } catch (e) {
+      log("error processing image: $e");
+    }
+  }
+
+  Future<void> resizeImageToInput({
+    required Uint8List imageBytes,
+  }) async {
+    // Decode the Uint8List directly using img.decodeImage
+    final originalImage = img.decodeImage(imageBytes);
+
+    if (originalImage == null) throw Exception('Failed to load image');
+
+    // Resize image to 640x640
+    final resizedImage = img.copyResize(
+      originalImage,
+      width: 640,
+      height: 640,
+      interpolation: img.Interpolation.linear,
+    );
+
+    // Create input tensor
+    input = List.generate(
+      1,
+      (index) => List.generate(
+        640,
+        (y) => List.generate(
+          640,
+          (x) => List.generate(
+            3,
+            (c) {
+              final pixel = resizedImage.getPixel(x, y);
+              double value = 0;
+              if (c == 0) {
+                value = pixel.r.toDouble();
+              } else if (c == 1) {
+                value = pixel.g.toDouble();
+              } else {
+                value = pixel.b.toDouble();
+              }
+              return value / 255.0;
+            },
+          ),
+        ),
+      ),
+    );
+    output = List.filled(1 * 300 * 6, 0).reshape([1, 300, 6]);
+    log(output.first[0].toString());
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return OrientationWrapperWidget(builder: (context, orientation) {
       return LayoutBuilder(builder: (context, constraint) {
-        final screenSize = Size(constraint.maxWidth, constraint.maxHeight);
-
-        log("layout height ${constraint.maxHeight}");
-        log("layout width ${constraint.maxWidth}");
-
         return CameraAwesomeBuilder.custom(
-          onImageForAnalysis: (AnalysisImage img) async {
-            setState(() {
-              imageSize = Size(img.width.toDouble(), img.height.toDouble());
-            });
-
-            // Handle image analysis
-            log("original height  ${img.height}");
-            log("original width  ${img.width}");
-
-            final InputImage inputImage;
-            inputImage = img.toInputImage();
-
-            final modelPath =
-                await getModelPath('assets/ml/object_labeler_flowers.tflite');
-
-            final options = LocalObjectDetectorOptions(
-                modelPath: modelPath,
-                mode: DetectionMode.stream,
-                classifyObjects: true,
-                multipleObjects: false);
-
-            final objectDetector = ObjectDetector(options: options);
-
-            final List<DetectedObject> objects =
-                await objectDetector.processImage(inputImage);
-
-            log(objects.length.toString());
-
-            for (DetectedObject detectedObject in objects) {
-              final rect = detectedObject.boundingBox;
-              // final trackingId = detectedObject.trackingId;
-              log("rect : ${rect.left},${rect.top},${rect.right},${rect.bottom}");
-
-              objRect = rect;
-              for (Label label in detectedObject.labels) {
-                setState(() {
-                  objLabel = label.text;
-                  objConfidence = label.confidence;
-                });
-                log('${label.text} ${label.confidence}');
-              }
-            }
-          },
+          onImageForAnalysis: processImage,
           imageAnalysisConfig: AnalysisConfig(
             // 1.
             androidOptions: const AndroidAnalysisOptions.nv21(
@@ -91,50 +135,38 @@ class _CameraContentState extends State<CameraContent> {
             // 3.
             cupertinoOptions: const CupertinoAnalysisOptions.bgra8888(),
             // 4.
-            maxFramesPerSecond: 20,
+            maxFramesPerSecond: 5,
           ),
           builder: (state, preview) {
-            return CustomPaint(
-              painter: objRect != null && objConfidence != 0.0
-                  ? ObjectDetectorPainter(
-                      rect: objRect!,
-                      label: objLabel,
-                      confidence: objConfidence,
-                      imageSize: imageSize,
-                      screenSize: screenSize,
-                      padding: CameraConstants.outerPadding,
-                    )
-                  : null,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  //camera section
-                  Expanded(
-                    flex: 15,
-                    child: !widget.showInstruction
-                        ? const SizedBox()
-                        : Stack(
-                            children: [
-                              //frame
-                              CustomPaint(
-                                painter: FramePainter(
-                                  padding: CameraConstants.outerPadding,
-                                  color: const Color.fromRGBO(
-                                      0, 5, 34, 0.8), //paint color
-                                ),
-                                child: Container(
-                                  margin: CameraConstants.outerPadding,
-                                  decoration: BoxDecoration(
-                                    color: Colors.transparent,
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                //camera section
+                Expanded(
+                  flex: 15,
+                  child: !widget.showInstruction
+                      ? const SizedBox()
+                      : Stack(
+                          children: [
+                            //frame
+                            CustomPaint(
+                              painter: FramePainter(
+                                padding: CameraConstants.outerPadding,
+                                color: const Color.fromRGBO(
+                                    0, 5, 34, 0.8), //paint color
+                              ),
+                              child: Container(
+                                margin: CameraConstants.outerPadding,
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10.0),
                                 ),
                               ),
-                            ],
-                          ),
-                  ),
-                ],
-              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ],
             );
           },
           onMediaCaptureEvent: (mediaCapture) {},
