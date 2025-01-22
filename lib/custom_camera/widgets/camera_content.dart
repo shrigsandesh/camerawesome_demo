@@ -1,13 +1,12 @@
 import 'dart:developer';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
+import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
 
 import 'package:camerawesome_demo/custom_camera/widgets/orientation_wrapper.dart';
-import 'package:camerawesome_demo/extensions/mlkit_extension.dart';
 import 'package:camerawesome_demo/services/file_util.dart';
 import 'package:flutter/material.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
@@ -123,12 +122,20 @@ class _CameraContentState extends State<CameraContent> {
   Widget build(BuildContext context) {
     return OrientationWrapperWidget(builder: (context, orientation) {
       return LayoutBuilder(builder: (context, constraint) {
+        final screenSize = Size(constraint.maxWidth, constraint.maxHeight);
+
         return CameraAwesomeBuilder.custom(
-          onImageForAnalysis: processImage,
+          onImageForAnalysis: (AnalysisImage img) async {
+            setState(() {
+              imageSize = Size(img.width.toDouble(), img.height.toDouble());
+            });
+
+            // _processFrame(img);
+          },
           imageAnalysisConfig: AnalysisConfig(
             // 1.
             androidOptions: const AndroidAnalysisOptions.nv21(
-              width: 250,
+              width: 640,
             ),
             // 2.
             autoStart: true,
@@ -138,35 +145,47 @@ class _CameraContentState extends State<CameraContent> {
             maxFramesPerSecond: 5,
           ),
           builder: (state, preview) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                //camera section
-                Expanded(
-                  flex: 15,
-                  child: !widget.showInstruction
-                      ? const SizedBox()
-                      : Stack(
-                          children: [
-                            //frame
-                            CustomPaint(
-                              painter: FramePainter(
-                                padding: CameraConstants.outerPadding,
-                                color: const Color.fromRGBO(
-                                    0, 5, 34, 0.8), //paint color
-                              ),
-                              child: Container(
-                                margin: CameraConstants.outerPadding,
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10.0),
+            return CustomPaint(
+              painter: objRect != null
+                  ? ObjectDetectorPainter(
+                      rect: objRect!,
+                      label: objLabel,
+                      confidence: objConfidence,
+                      imageSize: imageSize,
+                      screenSize: screenSize,
+                      padding: CameraConstants.outerPadding,
+                    )
+                  : null,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  //camera section
+                  Expanded(
+                    flex: 15,
+                    child: !widget.showInstruction
+                        ? const SizedBox()
+                        : Stack(
+                            children: [
+                              //frame
+                              CustomPaint(
+                                painter: FramePainter(
+                                  padding: CameraConstants.outerPadding,
+                                  color: const Color.fromRGBO(
+                                      0, 5, 34, 0.8), //paint color
+                                ),
+                                child: Container(
+                                  margin: CameraConstants.outerPadding,
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                ),
-              ],
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             );
           },
           onMediaCaptureEvent: (mediaCapture) {},

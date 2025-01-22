@@ -1,6 +1,5 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/camera_page.dart';
-import 'package:camerawesome_demo/custom_camera/camera_page2.dart';
 import 'package:camerawesome_demo/services/permission_service.dart';
 
 import 'package:flutter/material.dart';

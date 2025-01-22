@@ -46,6 +46,8 @@ dependencies:
   google_mlkit_object_detection: ^0.14.0
   tflite_flutter: ^0.11.0
   image: ^4.5.2
+  # flutter_vision: ^1.1.4
+   # tflite_v2: ^1.0.0
   
 dev_dependencies:
   flutter_test:
@@ -73,6 +75,7 @@ flutter:
   assets:
     - assets/
     - assets/ml/
+    - assets/images/
 
   #   - images/a_dot_ham.jpeg
 
