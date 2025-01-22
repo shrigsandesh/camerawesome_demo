@@ -1,96 +1,92 @@
-import 'package:flutter/material.dart';
-import 'dart:math' as math;
+import 'package:flutter/widgets.dart';
 
-class BoundingBoxCoordinatesTranslator {
-  final Size imageSize;
-  final Size screenSize;
-  final EdgeInsets padding;
+class BoundaryBoxBorder extends StatelessWidget {
+  final Rect rect;
+  final Color borderColor;
+  final double borderWidth;
 
-  BoundingBoxCoordinatesTranslator({
-    required this.imageSize,
-    required this.screenSize,
-    this.padding = EdgeInsets.zero,
+  const BoundaryBoxBorder({
+    super.key,
+    required this.rect,
+    required this.borderColor,
+    required this.borderWidth,
   });
 
-  Rect translateRect(Rect rect) {
-    // Calculate scale factors
-    final double scaleX =
-        (screenSize.width - padding.left - padding.right) / imageSize.width;
-    final double scaleY =
-        (screenSize.height - padding.top - padding.bottom) / imageSize.height;
-
-    // Use the smaller scale to maintain aspect ratio
-    final double scale = math.min(scaleX, scaleY);
-
-    // Calculate translation to center the image
-    final double offsetX =
-        (screenSize.width - (imageSize.width * scale)) / 2 + padding.left;
-    final double offsetY =
-        (screenSize.height - (imageSize.height * scale)) / 2 + padding.top;
-
-    return Rect.fromLTRB(
-      rect.left * scale + offsetX,
-      rect.top * scale + offsetY,
-      rect.right * scale + offsetX,
-      rect.bottom * scale + offsetY,
-    );
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fromRect(
+        rect: rect,
+        child: CustomPaint(
+          foregroundPainter: FishBoundaryBoxScannerBorderPainter(
+            borderColor,
+            borderWidth,
+          ),
+        ));
   }
 }
 
-// Modify your ObjectDetectorPainter
-class ObjectDetectorPainter extends CustomPainter {
-  final Rect rect;
-  final String label;
-  final double confidence;
-  final Size imageSize;
-  final Size screenSize;
-  final EdgeInsets padding;
+// Modified to use topLeft and bottomRight for rectangle
+class FishBoundaryBoxScannerBorderPainter extends CustomPainter {
+  final Color borderColor;
+  final double borderWidth;
 
-  ObjectDetectorPainter({
-    required this.rect,
-    required this.label,
-    required this.confidence,
-    required this.imageSize,
-    required this.screenSize,
-    this.padding = EdgeInsets.zero,
-  });
+  FishBoundaryBoxScannerBorderPainter(this.borderColor, this.borderWidth);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final translator = BoundingBoxCoordinatesTranslator(
-      imageSize: imageSize,
-      screenSize: screenSize,
-      padding: padding,
+    const width = 2.0;
+    const radius = 2.5;
+    const tRadius = 3 * radius;
+    final rect = Rect.fromLTWH(
+      width,
+      width,
+      size.width - 2 * width,
+      size.height - 2 * width,
+    );
+    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(radius));
+    const clippingRect0 = Rect.fromLTWH(
+      0,
+      0, // Adjust these values for desired gap
+      2.7 * tRadius,
+      tRadius, // Increase height for top gap
     );
 
-    final scaledRect = translator.translateRect(rect);
-
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..color = Colors.red;
-
-    canvas.drawRect(scaledRect, paint);
-
-    // Draw label
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: '$label (${(confidence * 100).toStringAsFixed(0)}%)',
-        style: const TextStyle(
-          color: Colors.red,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
+    final clippingRect1 = Rect.fromLTWH(
+      size.width - 2.7 * tRadius, // Adjusted width for longer top left side
+      0,
+      2.7 * tRadius,
+      tRadius,
     );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(scaledRect.left, scaledRect.top - 20),
+    final clippingRect2 = Rect.fromLTWH(
+      0,
+      size.height - tRadius,
+      tRadius * 2.7,
+      tRadius,
+    );
+    final clippingRect3 = Rect.fromLTWH(
+      size.width - 2.7 * tRadius,
+      size.height - tRadius,
+      tRadius * 2.7,
+      tRadius,
+    );
+    final path = Path()
+      ..addRect(clippingRect0)
+      ..addRect(clippingRect1)
+      ..addRect(clippingRect2)
+      ..addRect(clippingRect3);
+
+    canvas.clipPath(path);
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = borderColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = borderWidth,
     );
   }
 
   @override
-  bool shouldRepaint(ObjectDetectorPainter oldDelegate) => true;
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
 }
