@@ -1,61 +1,39 @@
-import 'dart:math';
-
-import 'package:camerawesome_demo/custom_camera/widgets/camera_view_singleton.dart';
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/cupertino.dart';
 
 /// Represents the recognition output from the model
 class Recognition {
   /// Index of the result
-  int _id;
-
-  /// Label of the result
-  String _label;
+  final int classId;
 
   /// Confidence [0.0, 1.0]
-  double _score;
+  final double score;
 
   /// Location of bounding box rect
   ///
   /// The rectangle corresponds to the raw input image
   /// passed for inference
-  Rect _location;
+  final Rect normalizedRect;
 
-  Recognition(this._id, this._label, this._score, [this._location = Rect.zero]);
-
-  int get id => _id;
-
-  String get label => _label;
-
-  double get score => _score;
-
-  Rect get location => _location;
-
-  /// Returns bounding box rectangle corresponding to the
-  /// displayed image on screen
-  ///
-  /// This is the actual location where rectangle is rendered on
-  /// the screen
-  Rect get renderLocation {
-    // ratioX = screenWidth / imageInputWidth
-    // ratioY = ratioX if image fits screenWidth with aspectRatio = constant
-
-    double ratioX = CameraViewSingleton.ratio ?? 1;
-    double ratioY = ratioX;
-
-    double transLeft = max(0.1, location.left * ratioX);
-    double transTop = max(0.1, location.top * ratioY);
-    double transWidth = min(
-        location.width * ratioX, CameraViewSingleton.actualPreviewSize!.width);
-    double transHeight = min(location.height * ratioY,
-        CameraViewSingleton.actualPreviewSize!.height);
-
-    Rect transformedRect =
-        Rect.fromLTWH(transLeft, transTop, transWidth, transHeight);
-    return transformedRect;
+  Recognition._({
+    required this.classId,
+    required this.score,
+    required this.normalizedRect,
+  });
+  factory Recognition.fromTensorOutput({
+    required List<double> output,
+  }) {
+    return Recognition._(
+      classId: output[5].toInt(),
+      score: output[4],
+      normalizedRect: Rect.fromPoints(
+        Offset(output[0], output[1]),
+        Offset(output[2], output[3]),
+      ),
+    );
   }
 
   @override
-  String toString() {
-    return 'Recognition(id: $id, label: $label, score: $score, location: $location)';
-  }
+  String toString() =>
+      'Recognition(classId: $classId, score: $score, normalizedRect: $normalizedRect)';
 }

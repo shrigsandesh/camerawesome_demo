@@ -11,6 +11,14 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We need access to save medias</string>
 	<!-- gal: Required for ios < 14 or saving to album -->
+	<key>NSCameraUsageDescription</key>
+	<string>To enable camera access when recording video</string>
+
+	<key>NSMicrophoneUsageDescription</key>
+	<string>To enable microphone access when recording video</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>To enable GPS location access for Exif data</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
