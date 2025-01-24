@@ -32,15 +32,17 @@ class _CameraAwesomeModePreviewWrapperState
     extends State<CameraAwesomeModePreviewWrapper> {
   List<Detection> objDetections = [];
   late Interpreter pballInterpreter;
+  late Interpreter fishInterpreter;
+
   List input = [];
   List output = [];
   bool processing = false;
   bool isLoading = false;
   var interpreterOptions = InterpreterOptions()..threads = 4;
   late IsolateInterpreter pballIsolate;
+  late IsolateInterpreter fishIsolate;
 
   Uint8List? processedFile;
-  Size analysisSize = Size.zero;
 
   @override
   void initState() {
@@ -57,9 +59,16 @@ class _CameraAwesomeModePreviewWrapperState
         "assets/ml/pball_model.tflite",
         options: interpreterOptions,
       );
+      fishInterpreter = await Interpreter.fromAsset(
+        "assets/ml/fish_detection.tflite",
+        options: interpreterOptions,
+      );
 
       pballIsolate = await IsolateInterpreter.create(
         address: pballInterpreter.address,
+      );
+      fishIsolate = await IsolateInterpreter.create(
+        address: fishInterpreter.address,
       );
 
       setState(() {
@@ -73,6 +82,38 @@ class _CameraAwesomeModePreviewWrapperState
     }
   }
 
+  Future<void> detect(Uint8List bytes, isProofball) async {
+    await resizeImageToInput(imageBytes: bytes);
+    if (isProofball) {
+      await pballIsolate.run(input, output);
+    } else {
+      await fishIsolate.run(input, output);
+    }
+
+    final score = output[0][0][4] as double?;
+    if (score == null) return;
+    double x1 = output[0][0][0];
+    double y1 = output[0][0][1];
+    double x2 = output[0][0][2];
+    double y2 = output[0][0][3];
+
+    log("${output[0][0][0]},${output[0][0][1]},${output[0][0][2]},${output[0][0][3]},${output[0][0][4]}");
+
+    if (score > 0.5) {
+      Detection detection = Detection(
+        confidence: score,
+        rect: Rect.fromPoints(
+          Offset(x1, y1),
+          Offset(x2, y2),
+        ),
+      );
+      objDetections.add(detection);
+      if (mounted) {
+        setState(() {});
+      }
+    }
+  }
+
   Future<void> processImage(AnalysisImage image) async {
     if (processing || isLoading) {
       return;
@@ -80,7 +121,6 @@ class _CameraAwesomeModePreviewWrapperState
 
     setState(() {
       processing = true;
-      analysisSize = Size(image.width.toDouble(), image.height.toDouble());
     });
     objDetections.clear();
 
@@ -99,33 +139,8 @@ class _CameraAwesomeModePreviewWrapperState
           processedFile = jpeg.bytes;
         },
         jpeg: (JpegImage img) async {
-          await resizeImageToInput(imageBytes: img.bytes);
-          await pballIsolate.run(input, output);
-
-          final score = output[0][0][4] as double?;
-          if (score == null) return;
-          double x1 = output[0][0][0];
-          double y1 = output[0][0][1];
-          double x2 = output[0][0][2];
-          double y2 = output[0][0][3];
-
-          log("${output[0][0][0]},${output[0][0][1]},${output[0][0][2]},${output[0][0][3]},${output[0][0][4]}");
-          log("$x1, $y1,$x2,$y2");
-
-          Detection detection = Detection(
-            confidence: score,
-            rect: Rect.fromPoints(
-              Offset(x1, y1),
-              Offset(x2, y2),
-            ),
-          );
-          if (score > 0.5) {
-            objDetections.clear();
-            objDetections.add(detection);
-            if (mounted) {
-              setState(() {});
-            }
-          }
+          await detect(img.bytes, true);
+          await detect(img.bytes, false);
         },
       );
     } catch (e) {
@@ -146,13 +161,6 @@ class _CameraAwesomeModePreviewWrapperState
       final originalImage = img.decodeImage(imageBytes);
       if (originalImage == null) throw Exception('Failed to load image');
 
-      final resizedImage = img.copyResize(
-        originalImage,
-        width: 640,
-        height: 640,
-        interpolation: img.Interpolation.linear,
-      );
-
       input = List.generate(
         1,
         (index) => List.generate(
@@ -162,7 +170,7 @@ class _CameraAwesomeModePreviewWrapperState
             (x) => List.generate(
               3,
               (c) {
-                final pixel = resizedImage.getPixel(x, y);
+                final pixel = originalImage.getPixel(x, y);
                 double value = c == 0
                     ? pixel.r.toDouble()
                     : c == 1
@@ -202,7 +210,7 @@ class _CameraAwesomeModePreviewWrapperState
             imageAnalysisConfig: AnalysisConfig(
               // 1.
               androidOptions: const AndroidAnalysisOptions.jpeg(
-                width: 500,
+                width: 640,
               ),
               // 2.
               autoStart: true,
@@ -213,44 +221,34 @@ class _CameraAwesomeModePreviewWrapperState
             ),
             builder: (state, preview) {
               widget.onStateChanged(state);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return Stack(
                 children: [
-                  //camera section
-                  Expanded(
-                    flex: 15,
-                    child: Stack(
-                      children: [
-                        //frame
-                        CustomPaint(
-                          painter: FramePainter(
-                            padding: CameraConstants.outerPadding,
-                            color: const Color.fromRGBO(
-                                0, 5, 34, 0.8), //paint color
-                          ),
-                          child: Container(
-                            margin: CameraConstants.outerPadding,
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                          ),
-                        ),
-
-                        if (objDetections.isNotEmpty)
-                          ...List.generate(
-                            objDetections.length,
-                            (index) => BoundaryBoxBorder(
-                              rect: DetectionUtils.scaleRectToPreviewArea(
-                                  previewRect: preview.rect,
-                                  modelRect: objDetections[index].rect),
-                              borderColor: Colors.red,
-                              borderWidth: 3,
-                            ),
-                          ),
-                      ],
+                  //frame
+                  CustomPaint(
+                    painter: FramePainter(
+                      padding: CameraConstants.outerPadding,
+                      color: const Color.fromRGBO(0, 5, 34, 0.8), //paint color
+                    ),
+                    child: Container(
+                      margin: CameraConstants.outerPadding,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
                     ),
                   ),
+
+                  if (objDetections.isNotEmpty)
+                    ...List.generate(
+                      objDetections.length,
+                      (index) => BoundaryBoxBorder(
+                        rect: DetectionUtils.scaleRectToPreviewArea(
+                            previewRect: preview.rect,
+                            modelRect: objDetections[index].rect),
+                        borderColor: Colors.red,
+                        borderWidth: 3,
+                      ),
+                    ),
                 ],
               );
             },
