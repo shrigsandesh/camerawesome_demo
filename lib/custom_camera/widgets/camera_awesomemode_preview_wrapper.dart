@@ -90,8 +90,7 @@ class _CameraAwesomeModePreviewWrapperState
             ),
             builder: (state, preview) {
               widget.onStateChanged(state);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              return Stack(
                 children: [
                   Expanded(
                     flex: 15,

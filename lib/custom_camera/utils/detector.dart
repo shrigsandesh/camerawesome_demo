@@ -279,7 +279,7 @@ class _DetectorServer {
       inferenceTime: inferenceElapsedTime,
       totalElapsedTime: totalElapsedTime,
     );
-    List<Recognition> recognitions = [];
+    List<Recognition> recognitions = [recognition];
 
     return MlProcessingResult(
       recognitions: recognitions,
