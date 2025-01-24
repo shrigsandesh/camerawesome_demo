@@ -1,7 +1,3 @@
-// Copyright 2023 The Flutter team. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
@@ -17,8 +13,6 @@ import 'package:image/image.dart' as image_lib;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 ///////////////////////////////////////////////////////////////////////////////
-// **WARNING:** This is not production code and is only intended to be used for
-// demonstration purposes.
 //
 // The following Detector example works by spawning a background isolate and
 // communicating with it over Dart's SendPort API. It is presented below as a
@@ -70,7 +64,7 @@ class _Command {
 /// are executed in a background isolate.
 /// This class just sends and receives messages to the isolate.
 class Detector {
-  static const String _modelPath = 'assets/ml/pball_model.tflite';
+  static const String _modelPath = 'assets/ml/pball_yolo_v10_16.tflite';
 
   Detector._(this._isolate, this._interpreter);
 
@@ -108,9 +102,11 @@ class Detector {
     final interpreterOptions = InterpreterOptions();
 
     // Use XNNPACK Delegate
-    if (Platform.isAndroid) {
-      interpreterOptions.addDelegate(XNNPackDelegate());
-    }
+    // if (Platform.isAndroid) {
+    //   interpreterOptions.addDelegate(XNNPackDelegate());
+    // } else if (Platform.isIOS) {
+    //   interpreterOptions.addDelegate(GpuDelegate());
+    // }
 
     return Interpreter.fromAsset(
       _modelPath,
@@ -165,9 +161,8 @@ class Detector {
 /// This is where we use the new feature Background Isolate Channels, which
 /// allows us to use plugins from background isolates.
 class _DetectorServer {
-  /// Input size of image (height = width = 640)
-  static const int mlModelInputSize = 640;
-
+  List<int> inputShape = [];
+  List<int> outputShape = [];
   Interpreter? _interpreter;
 
   _DetectorServer(this._sendPort);
@@ -210,6 +205,11 @@ class _DetectorServer {
         // ----------------------------------------------------------------------
         BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
         _interpreter = Interpreter.fromAddress(command.args?[1] as int);
+        inputShape = _interpreter!.getInputTensor(0).shape;
+        outputShape = _interpreter!.getOutputTensor(0).shape;
+
+        print(inputShape);
+        print(outputShape);
         _sendPort.send(const _Command(_Codes.ready));
       case _Codes.detect:
         _sendPort.send(const _Command(_Codes.busy));
@@ -235,21 +235,21 @@ class _DetectorServer {
   }
 
   MlProcessingResult analyseImage(
-      image_lib.Image? image, int preConversionTime) {
+      image_lib.Image image, int preConversionTime) {
     var conversionElapsedTime =
         DateTime.now().millisecondsSinceEpoch - preConversionTime;
 
     var preProcessStart = DateTime.now().millisecondsSinceEpoch;
 
     /// Pre-process the image
-    /// Resizing image for model [640, 640]
+    /// Resizing image for model
     final imageInput = image_lib.copyResize(
-      image!,
-      width: mlModelInputSize,
-      height: mlModelInputSize,
+      image,
+      width: inputShape[1],
+      height: inputShape[2],
     );
 
-    // Creating matrix representation, [640, 640, 3]
+    // Creating matrix representation from shape
     final imageMatrix = List.generate(
       imageInput.height,
       (y) => List.generate(
@@ -273,14 +273,17 @@ class _DetectorServer {
 
     var totalElapsedTime =
         DateTime.now().millisecondsSinceEpoch - preConversionTime;
+    final stats = MlProcessingStats(
+      conversionTime: conversionElapsedTime,
+      preProcessingTime: preProcessElapsedTime,
+      inferenceTime: inferenceElapsedTime,
+      totalElapsedTime: totalElapsedTime,
+    );
+    List<Recognition> recognitions = [];
+
     return MlProcessingResult(
-      recognitions: [recognition],
-      stats: MlProcessingStats(
-        conversionTime: conversionElapsedTime,
-        preProcessingTime: preProcessElapsedTime,
-        inferenceTime: inferenceElapsedTime,
-        totalElapsedTime: totalElapsedTime,
-      ),
+      recognitions: recognitions,
+      stats: stats,
     );
   }
 
@@ -288,11 +291,9 @@ class _DetectorServer {
   Recognition _runInference(
     List<List<List<num>>> imageMatrix,
   ) {
-    // Set input tensor [1, 640, 640, 3]
     final input = [imageMatrix];
-
-    final output = List.filled(1 * 300 * 6, 0).reshape([1, 300, 6]);
-
+    final listLength = outputShape.reduce((a, b) => a * b);
+    final output = List.filled(listLength, 0).reshape(outputShape);
     _interpreter!.run(input, output);
     final singleOutput = output[0][0] as List<double>;
     return Recognition.fromTensorOutput(output: singleOutput);

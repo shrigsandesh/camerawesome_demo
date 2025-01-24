@@ -31,8 +31,6 @@ class CameraAwesomeModePreviewWrapper extends StatefulWidget {
 
 class _CameraAwesomeModePreviewWrapperState
     extends State<CameraAwesomeModePreviewWrapper> {
-  MlProcessingResult? mlProcessingResult;
-  bool processing = false;
   bool isLoadingModel = false;
   Size analysisSize = Size.zero;
 
@@ -40,7 +38,6 @@ class _CameraAwesomeModePreviewWrapperState
   /// because acquiring a [Detector] is an asynchronous operation. This
   /// value is `null` until the detector is initialized.
   Detector? _detector;
-  StreamSubscription? _subscription;
   @override
   void initState() {
     super.initState();
@@ -49,7 +46,6 @@ class _CameraAwesomeModePreviewWrapperState
 
   @override
   void dispose() {
-    _subscription?.cancel();
     super.dispose();
   }
 
@@ -61,9 +57,6 @@ class _CameraAwesomeModePreviewWrapperState
       Detector.start().then((instance) {
         setState(() {
           _detector = instance;
-          _subscription = instance.resultsStream.stream.listen((result) {
-            mlProcessingResult = result;
-          });
         });
       });
       setState(() {
@@ -78,17 +71,7 @@ class _CameraAwesomeModePreviewWrapperState
   }
 
   Future<void> runDetectionOnImage(AnalysisImage analysisImage) async {
-    if (processing || isLoadingModel) {
-      return;
-    }
-    setState(() {
-      processing = true;
-      mlProcessingResult = null;
-    });
     _detector?.processFrame(analysisImage);
-    setState(() {
-      processing = false;
-    });
   }
 
   @override
@@ -99,7 +82,7 @@ class _CameraAwesomeModePreviewWrapperState
             onImageForAnalysis: runDetectionOnImage,
             imageAnalysisConfig: AnalysisConfig(
               androidOptions: const AndroidAnalysisOptions.yuv420(
-                width: 640,
+                width: 224,
               ),
               autoStart: true,
               cupertinoOptions: const CupertinoAnalysisOptions.bgra8888(),
@@ -127,17 +110,41 @@ class _CameraAwesomeModePreviewWrapperState
                             ),
                           ),
                         ),
-                        if (mlProcessingResult != null)
-                          for (final recognition
-                              in mlProcessingResult!.recognitions)
-                            BoundaryBoxBorder(
-                              rect: DetectionUtils.scaleRectToPreviewArea(
-                                previewRect: preview.rect,
-                                modelRect: recognition.normalizedRect,
-                              ),
-                              borderColor: Colors.red,
-                              borderWidth: 3,
-                            ),
+                        StreamBuilder(
+                          stream: _detector?.resultsStream.stream,
+                          builder: (context, snapshot) {
+                            // If there's no data yet, show a loading indicator or a placeholder
+                            if (!snapshot.hasData) {
+                              return const SizedBox.shrink();
+                            }
+                            final result = snapshot.data as MlProcessingResult;
+
+                            return Stack(
+                              children: [
+                                if (result.recognitions.isNotEmpty)
+                                  for (final recognition in result.recognitions)
+                                    BoundaryBoxBorder(
+                                      rect:
+                                          DetectionUtils.scaleRectToPreviewArea(
+                                        previewRect: preview.rect,
+                                        modelRect: recognition.normalizedRect,
+                                      ),
+                                      borderColor: Colors.red,
+                                      borderWidth: 3,
+                                    ),
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 50),
+                                    child: Text(
+                                      result.stats.toString(),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),

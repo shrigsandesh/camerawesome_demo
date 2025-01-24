@@ -41,7 +41,7 @@ class HomePage extends StatelessWidget {
             onPressed: () async {
               final hasSavePermission =
                   await PermissionService.requestMediaPermissions();
-              if (hasSavePermission && context.mounted) {
+              if (context.mounted) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const CameraPage(),
