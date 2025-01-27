@@ -10,7 +10,6 @@ import '../constants/camera_constants.dart';
 import '../painters/frame_painter.dart';
 import '../painters/object_detector_painter.dart';
 import '../tflite/ml_processing_result.dart';
-import '../utils/detection_util.dart';
 
 class CameraAwesomeModePreviewWrapper extends StatefulWidget {
   const CameraAwesomeModePreviewWrapper({
@@ -92,60 +91,61 @@ class _CameraAwesomeModePreviewWrapperState
               widget.onStateChanged(state);
               return Stack(
                 children: [
-                  Expanded(
-                    flex: 15,
-                    child: Stack(
-                      children: [
-                        CustomPaint(
-                          painter: FramePainter(
-                            padding: CameraConstants.outerPadding,
-                            color: const Color.fromRGBO(0, 5, 34, 0.8),
-                          ),
-                          child: Container(
-                            margin: CameraConstants.outerPadding,
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
+                  Stack(
+                    children: [
+                      CustomPaint(
+                        painter: FramePainter(
+                          padding: CameraConstants.outerPadding,
+                          color: const Color.fromRGBO(0, 5, 34, 0.8),
+                        ),
+                        child: Container(
+                          margin: CameraConstants.outerPadding,
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(10.0),
                           ),
                         ),
-                        StreamBuilder(
-                          stream: _detector?.resultsStream.stream,
-                          builder: (context, snapshot) {
-                            // If there's no data yet, show a loading indicator or a placeholder
-                            if (!snapshot.hasData) {
-                              return const SizedBox.shrink();
-                            }
-                            final result = snapshot.data as MlProcessingResult;
+                      ),
+                      StreamBuilder(
+                        stream: _detector?.resultsStream.stream,
+                        builder: (context, snapshot) {
+                          // If there's no data yet, show a loading indicator or a placeholder
+                          if (!snapshot.hasData) {
+                            return const SizedBox.shrink();
+                          }
+                          final result = snapshot.data as MlProcessingResult;
 
-                            return Stack(
-                              children: [
-                                if (result.recognitions.isNotEmpty)
-                                  for (final recognition in result.recognitions)
-                                    BoundaryBoxBorder(
-                                      rect:
-                                          DetectionUtils.scaleRectToPreviewArea(
-                                        previewRect: preview.rect,
-                                        modelRect: recognition.normalizedRect,
-                                      ),
-                                      borderColor: Colors.red,
-                                      borderWidth: 3,
-                                    ),
-                                Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 50),
-                                    child: Text(
-                                      result.stats.toString(),
+                          return Stack(
+                            children: [
+                              if (result.recognitions.isNotEmpty)
+                                for (final recognition in result.recognitions)
+                                  BoundaryBoxBorder(
+                                    rect: recognition.renderRect(
+                                        renderSize: preview.previewSize),
+                                    borderColor: Colors.red,
+                                    borderWidth: 2,
+                                  ),
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 50,
+                                    vertical: 50,
+                                  ),
+                                  color: Colors.black26,
+                                  child: Text(
+                                    result.stats.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.blueAccent,
                                     ),
                                   ),
-                                )
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               );

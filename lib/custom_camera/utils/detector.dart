@@ -7,9 +7,10 @@ import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
 import 'package:camerawesome_demo/custom_camera/utils/image_utils.dart';
+import 'package:camerawesome_demo/custom_camera/utils/nms_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:image/image.dart' as image_lib;
+import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -64,7 +65,8 @@ class _Command {
 /// are executed in a background isolate.
 /// This class just sends and receives messages to the isolate.
 class Detector {
-  static const String _modelPath = 'assets/ml/pball_yolo_v10_16.tflite';
+  static const String _modelPath =
+      'assets/ml/pball_imgsz_200_yolov10_32.tflite';
 
   Detector._(this._isolate, this._interpreter);
 
@@ -207,9 +209,6 @@ class _DetectorServer {
         _interpreter = Interpreter.fromAddress(command.args?[1] as int);
         inputShape = _interpreter!.getInputTensor(0).shape;
         outputShape = _interpreter!.getOutputTensor(0).shape;
-
-        print(inputShape);
-        print(outputShape);
         _sendPort.send(const _Command(_Codes.ready));
       case _Codes.detect:
         _sendPort.send(const _Command(_Codes.busy));
@@ -225,7 +224,7 @@ class _DetectorServer {
     ImageUtils.convertToImage(image: cameraImage).then((image) {
       if (image != null) {
         if (Platform.isAndroid) {
-          image = image_lib.copyRotate(image, angle: 90);
+          image = img.copyRotate(image, angle: 90);
         }
 
         final results = analyseImage(image, preConversionTime);
@@ -235,7 +234,9 @@ class _DetectorServer {
   }
 
   MlProcessingResult analyseImage(
-      image_lib.Image image, int preConversionTime) {
+    img.Image image,
+    int preConversionTime,
+  ) {
     var conversionElapsedTime =
         DateTime.now().millisecondsSinceEpoch - preConversionTime;
 
@@ -243,10 +244,11 @@ class _DetectorServer {
 
     /// Pre-process the image
     /// Resizing image for model
-    final imageInput = image_lib.copyResize(
+    final imageInput = img.copyResize(
       image,
       width: inputShape[1],
       height: inputShape[2],
+      interpolation: img.Interpolation.linear,
     );
 
     // Creating matrix representation from shape
@@ -266,7 +268,18 @@ class _DetectorServer {
 
     var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
 
-    final recognition = _runInference(imageMatrix);
+    final result = _runInference(
+      imageHeight: image.height,
+      imageWidth: image.width,
+      imageMatrix: imageMatrix,
+    );
+
+    final iou = NmsUtils.nmsForSingleClass(
+      result,
+      targetClassId: 0,
+    );
+
+    print(iou);
 
     var inferenceElapsedTime =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
@@ -279,23 +292,51 @@ class _DetectorServer {
       inferenceTime: inferenceElapsedTime,
       totalElapsedTime: totalElapsedTime,
     );
-    List<Recognition> recognitions = [recognition];
 
     return MlProcessingResult(
-      recognitions: recognitions,
+      recognitions: iou,
       stats: stats,
     );
   }
 
+  List<Recognition> _decodeOutput({
+    required List output,
+    required int imageWidth,
+    required int imageHeight,
+  }) {
+    List<Recognition> recognitions = [];
+
+    // Access the first batch (since output is batched)
+    final detections = output[0] as List<List<num>>;
+
+    for (var detection in detections) {
+      final recognition = Recognition.fromFlatOutput(
+        output: detection.map((e) => e.toDouble()).toList(),
+        imageHeight: imageHeight,
+        imageWidth: imageWidth,
+      );
+
+      // Create a Recognition object
+      if (recognition.score > 0.6) recognitions.add(recognition);
+    }
+
+    return recognitions;
+  }
+
   /// Object detection main function
-  Recognition _runInference(
-    List<List<List<num>>> imageMatrix,
-  ) {
+  List<Recognition> _runInference({
+    required List<List<List<num>>> imageMatrix,
+    required int imageWidth,
+    required int imageHeight,
+  }) {
     final input = [imageMatrix];
     final listLength = outputShape.reduce((a, b) => a * b);
     final output = List.filled(listLength, 0).reshape(outputShape);
     _interpreter!.run(input, output);
-    final singleOutput = output[0][0] as List<double>;
-    return Recognition.fromTensorOutput(output: singleOutput);
+    return _decodeOutput(
+      output: output,
+      imageHeight: imageHeight,
+      imageWidth: imageWidth,
+    );
   }
 }
