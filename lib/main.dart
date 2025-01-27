@@ -1,5 +1,5 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
-import 'package:camerawesome_demo/custom_camera/camera_page.dart';
+import 'package:camerawesome_demo/custom_camera/camera_using_camera.dart';
 import 'package:camerawesome_demo/services/permission_service.dart';
 
 import 'package:flutter/material.dart';
@@ -44,7 +44,7 @@ class HomePage extends StatelessWidget {
               if (context.mounted) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const CameraPage(),
+                    builder: (context) => const CameraUsingCamera(),
                     // builder: (context) => const CameraPage2(),
                   ),
                 );

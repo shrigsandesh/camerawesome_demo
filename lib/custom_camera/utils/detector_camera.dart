@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:camerawesome/camerawesome_plugin.dart';
+import 'package:camera/camera.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
@@ -66,7 +67,7 @@ class _Command {
 /// This class just sends and receives messages to the isolate.
 class Detector {
   static const String _modelPath =
-      'assets/ml/pball_imgsz_200_yolov10_32.tflite';
+      'assets/ml/pball_imgsz_200_yolov10_16.tflite';
 
   Detector._(this._isolate, this._interpreter);
 
@@ -117,7 +118,7 @@ class Detector {
   }
 
   /// Starts AnalysisImage processing
-  void processFrame(AnalysisImage cameraImage) {
+  void processFrame(CameraImage cameraImage) {
     if (_isReady) {
       _sendPort.send(_Command(_Codes.detect, args: [cameraImage]));
     }
@@ -212,16 +213,16 @@ class _DetectorServer {
         _sendPort.send(const _Command(_Codes.ready));
       case _Codes.detect:
         _sendPort.send(const _Command(_Codes.busy));
-        _convertAnalysisImage(command.args?[0] as AnalysisImage);
+        _convertAnalysisImage(command.args?[0] as CameraImage);
       default:
         debugPrint('_DetectorService unrecognized command ${command.code}');
     }
   }
 
-  void _convertAnalysisImage(AnalysisImage cameraImage) {
+  void _convertAnalysisImage(CameraImage cameraImage) {
     var preConversionTime = DateTime.now().millisecondsSinceEpoch;
 
-    ImageUtils.convertToImage(image: cameraImage).then((image) {
+    convertCameraImageToImage(cameraImage).then((image) {
       if (image != null) {
         if (Platform.isAndroid) {
           image = img.copyRotate(image, angle: 90);
@@ -274,13 +275,6 @@ class _DetectorServer {
       imageMatrix: imageMatrix,
     );
 
-    final iou = NmsUtils.nmsForSingleClass(
-      result,
-      targetClassId: 0,
-    );
-
-    print(iou);
-
     var inferenceElapsedTime =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
@@ -294,7 +288,7 @@ class _DetectorServer {
     );
 
     return MlProcessingResult(
-      recognitions: iou,
+      recognitions: result,
       stats: stats,
     );
   }
@@ -315,7 +309,11 @@ class _DetectorServer {
       );
 
       // Create a Recognition object
-      if (recognition.score > 0.6) recognitions.add(recognition);
+      if (recognition.score > 0.6) {
+        recognitions.add(recognition);
+        log(recognition.toString());
+        log(detection.toString());
+      }
     }
 
     return recognitions;
