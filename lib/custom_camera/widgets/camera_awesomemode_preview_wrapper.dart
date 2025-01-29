@@ -81,7 +81,7 @@ class _CameraAwesomeModePreviewWrapperState
             onImageForAnalysis: runDetectionOnImage,
             imageAnalysisConfig: AnalysisConfig(
               androidOptions: const AndroidAnalysisOptions.yuv420(
-                width: 224,
+                width: 500,
               ),
               autoStart: true,
               cupertinoOptions: const CupertinoAnalysisOptions.bgra8888(),
@@ -121,7 +121,8 @@ class _CameraAwesomeModePreviewWrapperState
                                 for (final recognition in result.recognitions)
                                   BoundaryBoxBorder(
                                     rect: recognition.renderRect(
-                                        renderSize: preview.previewSize),
+                                      renderSize: preview.rect.size,
+                                    ),
                                     borderColor: Colors.red,
                                     borderWidth: 2,
                                   ),

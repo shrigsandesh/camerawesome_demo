@@ -8,7 +8,6 @@ import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
 import 'package:camerawesome_demo/custom_camera/utils/image_utils.dart';
-import 'package:camerawesome_demo/custom_camera/utils/nms_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
@@ -50,6 +49,7 @@ enum _Codes {
   ready,
   detect,
   result,
+  error,
 }
 
 /// A command sent between [Detector] and [_DetectorServer].
@@ -148,6 +148,9 @@ class Detector {
       case _Codes.result:
         _isReady = true;
         resultsStream.add(command.args?[0] as MlProcessingResult);
+      case _Codes.error:
+        _isReady = true;
+        print(command.args?[0]);
       default:
         debugPrint('Detector unrecognized command: ${command.code}');
     }
@@ -224,6 +227,15 @@ class _DetectorServer {
 
     convertCameraImageToImage(cameraImage).then((image) {
       if (image != null) {
+        if (image.isEmpty) {
+          _sendPort.send(
+            const _Command(
+              _Codes.error,
+              args: ["Image is empty"],
+            ),
+          );
+          return;
+        }
         if (Platform.isAndroid) {
           image = img.copyRotate(image, angle: 90);
         }
@@ -249,7 +261,7 @@ class _DetectorServer {
       image,
       width: inputShape[1],
       height: inputShape[2],
-      interpolation: img.Interpolation.linear,
+      interpolation: img.Interpolation.nearest,
     );
 
     // Creating matrix representation from shape

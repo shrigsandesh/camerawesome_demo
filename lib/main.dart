@@ -44,7 +44,7 @@ class HomePage extends StatelessWidget {
               if (context.mounted) {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => const CameraUsingCamera(),
+                    builder: (context) => const CameraUsingCameraPreview(),
                     // builder: (context) => const CameraPage2(),
                   ),
                 );

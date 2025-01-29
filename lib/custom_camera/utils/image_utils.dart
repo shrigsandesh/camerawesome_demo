@@ -1,8 +1,9 @@
+import 'package:camera/camera.dart';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
 
-import 'package:camera/camera.dart';
+// import 'package:camera/camera.dart';
 import 'package:image/image.dart' as image_lib;
 
 /// Utility class for converting camera images to different formats
@@ -21,8 +22,10 @@ class ImageUtils {
         );
       },
       yuv420: (yuv) async {
-        final jpeg = await yuv.toJpeg();
-        return img.decodeJpg(jpeg.bytes);
+        // return convertYUV420ToImage(yuv);
+      },
+      nv21: (nv21) async {
+        // return convertNV21ToImage(nv21);
       },
     );
     return convertedImage;
@@ -94,18 +97,22 @@ image_lib.Image convertYUV420ToImage(CameraImage cameraImage) {
 }
 
 image_lib.Image convertBGRA8888ToImage(CameraImage cameraImage) {
-  // Extract the bytes from the CameraImage
-  final bytes = cameraImage.planes[0].bytes;
+  try {
+    // Extract the bytes from the CameraImage
+    final bytes = cameraImage.planes[0].bytes;
 
-  // Create a new Image instance
-  final image = image_lib.Image.fromBytes(
-    width: cameraImage.width,
-    height: cameraImage.height,
-    bytes: bytes.buffer,
-    order: image_lib.ChannelOrder.bgra,
-  );
+    // Create a new Image instance
+    final image = image_lib.Image.fromBytes(
+      width: cameraImage.width,
+      height: cameraImage.height,
+      bytes: bytes.buffer,
+      order: image_lib.ChannelOrder.bgra,
+    );
 
-  return image;
+    return image;
+  } catch (e) {
+    rethrow;
+  }
 }
 
 image_lib.Image convertJPEGToImage(CameraImage cameraImage) {

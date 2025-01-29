@@ -2,7 +2,6 @@
 
 import 'dart:developer';
 
-import 'package:camerawesome_demo/custom_camera/camera_using_camera.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Represents the recognition output from the model
