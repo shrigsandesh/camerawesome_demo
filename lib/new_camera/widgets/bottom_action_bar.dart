@@ -1,6 +1,5 @@
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_capture_button.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/prrofball_dropdown.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/record_button.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bouncing_widget.dart';
 import 'package:flutter/material.dart';
@@ -11,8 +10,7 @@ class BottomActionBar extends StatelessWidget {
     required this.modePgController,
     required this.availableModes,
     required this.selectedMode,
-    required this.onSelectionModeChanged,
-    required this.onModeTapped,
+    required this.onModeChanged,
     required this.onVideoRecording,
     required this.onVideoStopped,
   });
@@ -20,8 +18,7 @@ class BottomActionBar extends StatelessWidget {
   final PageController modePgController;
   final List<FishtechyCameraMode> availableModes;
   final FishtechyCameraMode selectedMode;
-  final void Function(int index) onSelectionModeChanged;
-  final void Function(FishtechyCameraMode tab) onModeTapped;
+  final void Function(FishtechyCameraMode tab) onModeChanged;
   final void Function(String? timer) onVideoRecording;
   final VoidCallback onVideoStopped;
 
@@ -31,63 +28,55 @@ class BottomActionBar extends StatelessWidget {
       color: Colors.black,
       child: Column(
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Expanded(
-                child: SizedBox(
-                  height: 32,
-                  child: PageView(
-                    scrollDirection: Axis.horizontal,
-                    controller: modePgController,
-                    onPageChanged: onSelectionModeChanged,
-                    children: availableModes
-                        .map(
-                          (tab) => Center(
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 300),
-                              opacity: tab.name == selectedMode.name ? 1 : 0.2,
-                              child: BouncingWidget(
-                                duration: const Duration(milliseconds: 300),
-                                onTap: () => onModeTapped(tab),
-                                child: Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: Text(
-                                      tab.name == 'threeD'
-                                          ? "3D Video"
-                                          : capitalizeFirstLetter(tab.name),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        shadows: [
-                                          Shadow(
-                                            blurRadius: 4,
-                                            color: Colors.black,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                  ),
+          SizedBox(
+            height: 32,
+            child: PageView(
+              scrollDirection: Axis.horizontal,
+              controller: modePgController,
+              onPageChanged: (index) {
+                onModeChanged(availableModes[index]);
+              },
+              children: availableModes
+                  .map(
+                    (tab) => Center(
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: tab.name == selectedMode.name ? 1 : 0.2,
+                        child: BouncingWidget(
+                          duration: const Duration(milliseconds: 300),
+                          onTap: () => onModeChanged(tab),
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: Text(
+                                tab.name == 'threeD'
+                                    ? "3D Video"
+                                    : capitalizeFirstLetter(tab.name),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  shadows: [
+                                    Shadow(
+                                      blurRadius: 4,
+                                      color: Colors.black,
+                                    )
+                                  ],
                                 ),
                               ),
                             ),
                           ),
-                        )
-                        .toList(),
-                  ),
-                ),
-              ),
-            ],
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20.0, 8.0, 20.0, 0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const SizedBox.square(
-                  dimension: 46.0,
-                ),
                 if (selectedMode == FishtechyCameraMode.threeD) ...[
                   RecrodButton(
                     onVideoRecording: (time) {},
@@ -110,12 +99,6 @@ class BottomActionBar extends StatelessWidget {
                   PhotoCaptureButton(
                     onTap: () {},
                   ),
-                SizedBox(
-                  width: 48,
-                  child: ProofballDropdown(
-                      colors: const [Colors.orange, Colors.red],
-                      onChanged: (ball) {}),
-                )
               ],
             ),
           ),
@@ -126,6 +109,6 @@ class BottomActionBar extends StatelessWidget {
 }
 
 String capitalizeFirstLetter(String word) {
-  if (word.isEmpty) return word; // Return the word if it's empty
+  if (word.isEmpty) return word;
   return word[0].toUpperCase() + word.substring(1);
 }
