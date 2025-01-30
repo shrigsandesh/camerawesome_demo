@@ -50,6 +50,7 @@ class _CameraPageViewState extends State<CameraPageView> {
 
       _cameraController = CameraController(
         _cameras[0],
+        enableAudio: true,
         ResolutionPreset.medium,
       );
 

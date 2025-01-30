@@ -56,9 +56,7 @@ class BottomActionBar extends StatelessWidget {
                             child: Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                tab.name == 'threeD'
-                                    ? "3D Video"
-                                    : capitalizeFirstLetter(tab.name),
+                                tab.displayName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -147,9 +145,4 @@ class BottomActionBar extends StatelessWidget {
       log("error saving file");
     }
   }
-}
-
-String capitalizeFirstLetter(String word) {
-  if (word.isEmpty) return word;
-  return word[0].toUpperCase() + word.substring(1);
 }

@@ -22,4 +22,12 @@ class CameraConstants {
 
 enum FishtechyCameraMode { photo, video, threeD }
 
+extension FishtechyCameraModeX on FishtechyCameraMode {
+  String get displayName => switch (this) {
+        FishtechyCameraMode.photo => "Photo",
+        FishtechyCameraMode.video => "Video",
+        FishtechyCameraMode.threeD => "3D Camera",
+      };
+}
+
 enum FishtechyCameraPreviewMode { photoAndvideo, threeD }

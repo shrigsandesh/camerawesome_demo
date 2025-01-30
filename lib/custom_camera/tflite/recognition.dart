@@ -2,7 +2,6 @@
 
 import 'dart:developer';
 
-import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:flutter/cupertino.dart';
 
 /// Represents the recognition output from the model
