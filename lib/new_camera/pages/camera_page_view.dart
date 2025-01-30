@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
 import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
@@ -64,7 +66,7 @@ class _CameraPageViewState extends State<CameraPageView> {
         _cameraController.startImageStream(onLatestImageAvailable);
       });
     } catch (e) {
-      print('Error initializing camera: $e');
+      log('Error initializing camera: $e');
     }
   }
 
@@ -122,7 +124,11 @@ class _CameraPageViewState extends State<CameraPageView> {
       body: Column(
         children: [
           const Spacer(),
-          TopActionBar(recordingTime: recordingTime),
+          TopActionBar(
+            recordingTime: recordingTime,
+            selectedMode: _selectedMode,
+            isVideoRecording: _cameraController.value.isRecordingVideo,
+          ),
           const Spacer(
             flex: 2,
           ),
@@ -169,7 +175,11 @@ class _CameraPageViewState extends State<CameraPageView> {
                 recordingTime = timer;
               });
             },
-            onVideoStopped: () {},
+            onVideoStopped: () {
+              setState(() {
+                recordingTime = null;
+              });
+            },
             controller: _cameraController,
           ),
           const Spacer(),
