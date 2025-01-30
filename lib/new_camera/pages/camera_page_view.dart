@@ -5,7 +5,6 @@ import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart
 import 'package:camerawesome_demo/custom_camera/utils/detector_camera.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bottom_action_bar.dart';
 import 'package:camerawesome_demo/new_camera/widgets/top_action_bar.dart';
-import 'package:collection/collection.dart';
 import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -26,6 +25,7 @@ class _CameraPageViewState extends State<CameraPageView> {
   late PageController modePageController;
   FishtechyCameraMode _selectedMode = FishtechyCameraMode.photo;
   Detector? _detector;
+  String? recordingTime;
 
   @override
   void initState() {
@@ -121,7 +121,7 @@ class _CameraPageViewState extends State<CameraPageView> {
       body: Column(
         children: [
           const Spacer(),
-          const TopActionBar(),
+          TopActionBar(recordingTime: recordingTime),
           const Spacer(
             flex: 2,
           ),
@@ -163,8 +163,13 @@ class _CameraPageViewState extends State<CameraPageView> {
                 updatePage: true,
               );
             },
-            onVideoRecording: (String? timer) {},
+            onVideoRecording: (String? timer) {
+              setState(() {
+                recordingTime = timer;
+              });
+            },
             onVideoStopped: () {},
+            controller: _cameraController,
           ),
           const Spacer(),
         ],
