@@ -45,41 +45,38 @@ class NmsUtils {
   /// Performs Non-Maximum Suppression (NMS) on a list of [Recognition]
   ///
   /// NMS filters overlapping bounding boxes by their confidence scores
-  /// - Retains only the highest-scoring boxes for given target class
+  /// - Retains only the highest-scoring boxes for each class
   /// - Suppresses boxes with IoU exceeding the threshold
   ///
   /// [list] A list of recognition objects to process
   /// Returns a list of filtered recognition objects
-
-  static List<Recognition> nmsForSingleClass(
-    List<Recognition> list, {
-    required int targetClassId,
-  }) {
+  static List<Recognition> nmsForAllClasses(List<Recognition> list) {
+    Map<int, PriorityQueue<Recognition>> classMap = {};
     List<Recognition> nmsList = [];
 
-    // 1. Filter recognitions for the target class
-    PriorityQueue<Recognition> pq = HeapPriorityQueue<Recognition>(
-      (a, b) => b.score.compareTo(a.score), // Higher score first
-    );
+    // 1. Group recognitions by class
     for (final recognition in list) {
-      if (recognition.classId == targetClassId) {
-        pq.add(recognition);
-      }
+      classMap
+          .putIfAbsent(
+              recognition.classId,
+              () => HeapPriorityQueue<Recognition>(
+                  (a, b) => b.score.compareTo(a.score)))
+          .add(recognition);
     }
 
-    // 2. Perform Non-Maximum Suppression
-    while (pq.isNotEmpty) {
-      // Take the recognition with the highest confidence
-      final max = pq.removeFirst();
-      nmsList.add(max);
+    // 2. Perform NMS for each class separately
+    for (var pq in classMap.values) {
+      while (pq.isNotEmpty) {
+        final max = pq.removeFirst();
+        nmsList.add(max);
 
-      // Remove overlapping detections
-      final remainingDetections = pq.toList();
-      pq.clear();
+        final remainingDetections = pq.toList();
+        pq.clear();
 
-      for (final detection in remainingDetections) {
-        if (max.rect.iou(detection.rect) < mNmsThresh) {
-          pq.add(detection);
+        for (final detection in remainingDetections) {
+          if (max.rect.iou(detection.rect) < mNmsThresh) {
+            pq.add(detection);
+          }
         }
       }
     }

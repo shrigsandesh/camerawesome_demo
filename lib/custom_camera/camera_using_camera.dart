@@ -1,10 +1,13 @@
 import 'dart:math';
 
 import 'package:camera/camera.dart';
+import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
+import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
 import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:camerawesome_demo/custom_camera/utils/detector_camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CameraUsingCameraPreview extends StatefulWidget {
   const CameraUsingCameraPreview({super.key});
@@ -53,6 +56,7 @@ class _CameraUsingCameraPreviewState extends State<CameraUsingCameraPreview>
       // Define the resolution to use.
       ResolutionPreset.high,
     )..initialize().then((_) {
+        _controller!.lockCaptureOrientation(DeviceOrientation.portraitUp);
         _controller!.startImageStream(onLatestImageAvailable);
         setState(() {});
       });
@@ -103,66 +107,77 @@ class _CameraUsingCameraPreviewState extends State<CameraUsingCameraPreview>
             ),
             body: Stack(
               children: [
-                AspectRatio(
-                  aspectRatio: 1 / _controller!.value.aspectRatio,
-                  child: CameraPreview(_controller!),
-                ),
-                BoundaryBoxBorder(
-                  rect: Rect.fromLTWH(
-                    0,
-                    0,
-                    mediaSize.width,
-                    mediaSize.width * _controller!.value.aspectRatio,
-                  ),
-                  borderColor: Colors.red,
-                  borderWidth: 2,
-                ),
-                StreamBuilder(
-                  stream: _detector?.resultsStream.stream,
-                  builder: (context, snapshot) {
-                    // If there's no data yet, show a loading indicator or a placeholder
-                    if (!snapshot.hasData) {
-                      return const SizedBox.shrink();
-                    }
-                    final result = snapshot.data as MlProcessingResult;
-
-                    return Stack(
+                RotatedBox(
+                  quarterTurns: 0,
+                  child: AspectRatio(
+                    aspectRatio: 1 / _controller!.value.aspectRatio,
+                    child: Stack(
                       children: [
-                        if (result.recognitions.isNotEmpty)
-                          for (final recognition in result.recognitions)
-                            BoundaryBoxBorder(
-                              rect: recognition.renderRect(
-                                renderSize: Size(
-                                  mediaSize.width,
-                                  mediaSize.width *
-                                      _controller!.value.aspectRatio,
-                                ),
-                              ),
-                              borderColor: Colors.red,
-                              borderWidth: 2,
-                            ),
-                        Align(
-                          alignment: Alignment.topCenter,
+                        CameraPreview(_controller!),
+                        CustomPaint(
+                          painter: FramePainter(
+                            padding: CameraConstants.outerPadding,
+                            color: const Color.fromRGBO(0, 5, 34, 0.8),
+                          ),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 50,
-                              vertical: 50,
-                            ),
-                            color: Colors.black26,
-                            child: Text(
-                              result.stats.toString(),
-                              style: const TextStyle(
-                                color: Colors.blueAccent,
-                              ),
+                            margin: CameraConstants.outerPadding,
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
                           ),
                         ),
+                        StreamBuilder(
+                          stream: _detector?.resultsStream.stream,
+                          builder: (context, snapshot) {
+                            // If there's no data yet, show a loading indicator or a placeholder
+                            if (!snapshot.hasData) {
+                              return const SizedBox.shrink();
+                            }
+                            final result = snapshot.data as MlProcessingResult;
+
+                            return Stack(
+                              children: [
+                                if (result.recognitions.isNotEmpty)
+                                  for (final recognition in result.recognitions)
+                                    BoundaryBoxBorder(
+                                      rect: recognition.renderRect(
+                                        renderSize: Size(
+                                          mediaSize.width,
+                                          mediaSize.width *
+                                              _controller!.value.aspectRatio,
+                                        ),
+                                      ),
+                                      borderColor: Colors.red,
+                                      borderWidth: 2,
+                                    ),
+                                Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 50,
+                                      vertical: 50,
+                                    ),
+                                    color: Colors.black26,
+                                    child: Text(
+                                      result.stats.toString(),
+                                      style: const TextStyle(
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ],
-                    );
-                  },
+                    ),
+                  ),
                 ),
               ],
-            ));
+            ),
+          );
   }
 
   void onLatestImageAvailable(CameraImage cameraImage) async {

@@ -8,6 +8,7 @@ import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
 import 'package:camerawesome_demo/custom_camera/utils/image_utils.dart';
+import 'package:camerawesome_demo/custom_camera/utils/nms_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
@@ -285,7 +286,9 @@ class _DetectorServer {
       imageWidth: image.width,
       imageMatrix: imageMatrix,
     );
-
+    final nmsAppliedRecognitions = NmsUtils.nmsForAllClasses(
+      result,
+    );
     var inferenceElapsedTime =
         DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
@@ -299,7 +302,7 @@ class _DetectorServer {
     );
 
     return MlProcessingResult(
-      recognitions: result,
+      recognitions: nmsAppliedRecognitions,
       stats: stats,
     );
   }

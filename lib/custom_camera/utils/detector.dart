@@ -274,9 +274,8 @@ class _DetectorServer {
       imageMatrix: imageMatrix,
     );
 
-    final iou = NmsUtils.nmsForSingleClass(
+    final iou = NmsUtils.nmsForAllClasses(
       result,
-      targetClassId: 0,
     );
 
     print(iou);
