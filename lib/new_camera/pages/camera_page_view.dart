@@ -1,7 +1,11 @@
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
+import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
+import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
+import 'package:camerawesome_demo/custom_camera/utils/detector_camera.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bottom_action_bar.dart';
 import 'package:camerawesome_demo/new_camera/widgets/top_action_bar.dart';
+import 'package:collection/collection.dart';
 import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -21,6 +25,7 @@ class _CameraPageViewState extends State<CameraPageView> {
   List<FishtechyCameraMode> availableModes = <FishtechyCameraMode>[];
   late PageController modePageController;
   FishtechyCameraMode _selectedMode = FishtechyCameraMode.photo;
+  Detector? _detector;
 
   @override
   void initState() {
@@ -36,6 +41,11 @@ class _CameraPageViewState extends State<CameraPageView> {
 
   Future<void> _initializeCamera() async {
     try {
+      Detector.start().then((instance) {
+        setState(() {
+          _detector = instance;
+        });
+      });
       _cameras = await availableCameras();
 
       _cameraController = CameraController(
@@ -43,16 +53,22 @@ class _CameraPageViewState extends State<CameraPageView> {
         ResolutionPreset.medium,
       );
 
-      await _cameraController.initialize();
+      _cameraController.initialize().then((_) {
+        if (mounted) {
+          setState(() {
+            _isInitialized = true;
+          });
+        }
 
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-        });
-      }
+        _cameraController.startImageStream(onLatestImageAvailable);
+      });
     } catch (e) {
       print('Error initializing camera: $e');
     }
+  }
+
+  void onLatestImageAvailable(CameraImage cameraImage) async {
+    _detector?.processFrame(cameraImage);
   }
 
   @override
@@ -60,6 +76,7 @@ class _CameraPageViewState extends State<CameraPageView> {
     _cameraController.dispose();
     modePageController.dispose();
     _pageController.dispose();
+    _detector?.stop();
     super.dispose();
   }
 
@@ -98,6 +115,7 @@ class _CameraPageViewState extends State<CameraPageView> {
       );
     }
 
+    final screenSize = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.black,
       body: Column(
@@ -121,7 +139,9 @@ class _CameraPageViewState extends State<CameraPageView> {
                   .map((e) => switch (e) {
                         FishtechyCameraMode.photo ||
                         FishtechyCameraMode.video =>
-                          buildPreview(_cameraController),
+                          buildPreview(
+                            screenSize: screenSize,
+                          ),
                         FishtechyCameraMode.threeD => const SizedBox(
                             height: 500,
                           ),
@@ -151,28 +171,93 @@ class _CameraPageViewState extends State<CameraPageView> {
       ),
     );
   }
-}
 
-Widget buildPreview(CameraController controller) {
-  return AspectRatio(
-    aspectRatio: 1 / controller.value.aspectRatio,
-    child: Stack(
-      children: [
-        CameraPreview(controller),
-        CustomPaint(
-          painter: FramePainter(
-            padding: CameraConstants.outerPadding,
-            color: const Color.fromRGBO(0, 5, 34, 0.8),
-          ),
-          child: Container(
-            margin: CameraConstants.outerPadding,
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(10.0),
+  Widget buildPreview({
+    required Size screenSize,
+  }) {
+    return AspectRatio(
+      aspectRatio: 1 / _cameraController.value.aspectRatio,
+      child: Stack(
+        children: [
+          CameraPreview(_cameraController),
+          CustomPaint(
+            painter: FramePainter(
+              padding: CameraConstants.outerPadding,
+              color: const Color.fromRGBO(0, 5, 34, 0.8),
+            ),
+            child: Container(
+              margin: CameraConstants.outerPadding,
+              child: Stack(
+                children: [
+                  StreamBuilder(
+                      stream: _detector?.resultsStream.stream,
+                      builder: (context, snapshot) {
+                        // If there's no data yet, show a loading indicator or a placeholder
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
+                        final result = snapshot.data as MlProcessingResult;
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            color: Colors.black26,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              result.detectionStatus,
+                            ),
+                          ),
+                        );
+                      }),
+                ],
+              ),
             ),
           ),
-        )
-      ],
-    ),
-  );
+          StreamBuilder(
+            stream: _detector?.resultsStream.stream,
+            builder: (context, snapshot) {
+              // If there's no data yet, show a loading indicator or a placeholder
+              if (!snapshot.hasData) {
+                return const SizedBox.shrink();
+              }
+              final result = snapshot.data as MlProcessingResult;
+
+              return Stack(
+                children: [
+                  if (result.recognitions.isNotEmpty)
+                    for (final recognition in result.recognitions)
+                      BoundaryBoxBorder(
+                        rect: recognition.renderRect(
+                          renderSize: Size(
+                            screenSize.width,
+                            screenSize.width *
+                                _cameraController.value.aspectRatio,
+                          ),
+                        ),
+                        borderColor: Colors.red,
+                        borderWidth: 2,
+                      ),
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 50,
+                      ),
+                      color: Colors.black26,
+                      child: Text(
+                        result.stats.toString(),
+                        style: const TextStyle(
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }

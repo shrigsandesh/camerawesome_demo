@@ -15,3 +15,22 @@ class MlProcessingResult {
   String toString() =>
       'MlProcessingResult(recognitions: $recognitions, stats: $stats)';
 }
+
+/// Extension to provide helper methods for `MlProcessingResult`
+extension MlProcessingResultX on MlProcessingResult {
+  /// Returns a status message based on detected objects.
+  String get detectionStatus {
+    if (recognitions.isEmpty) {
+      return "No object detected";
+    }
+
+    final hasFish = recognitions.any((e) => e.classId == 0);
+    final hasBall = recognitions.any((e) => e.classId == 1);
+
+    if (!hasFish && !hasBall) return "No object detected";
+    if (!hasFish) return "No fish detected";
+    if (!hasBall) return "No ball detected";
+
+    return "Fish and Ball detected";
+  }
+}

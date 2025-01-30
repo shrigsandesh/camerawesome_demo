@@ -12,6 +12,7 @@ import 'package:camerawesome_demo/custom_camera/utils/nms_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:rxdart/rxdart.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,7 +83,7 @@ class Detector {
   // // Similarly, StreamControllers are stored in a queue so they can be handled
   // // asynchronously and serially.
   final StreamController<MlProcessingResult> resultsStream =
-      StreamController<MlProcessingResult>();
+      BehaviorSubject<MlProcessingResult>();
 
   /// Open the database at [path] and launch the server on a background isolate..
   static Future<Detector> start() async {
@@ -150,7 +151,6 @@ class Detector {
         resultsStream.add(command.args?[0] as MlProcessingResult);
       case _Codes.error:
         _isReady = true;
-        print(command.args?[0]);
       default:
         debugPrint('Detector unrecognized command: ${command.code}');
     }
