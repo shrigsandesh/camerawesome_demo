@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 class TopActionBar extends StatelessWidget {
-  const TopActionBar({super.key});
+  const TopActionBar({super.key, this.recordingTime});
+  final String? recordingTime;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           InkWell(
             onTap: () {},
@@ -16,7 +18,16 @@ class TopActionBar extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const Spacer(),
+          if (recordingTime != null)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+              child: Center(
+                child: Text(recordingTime!),
+              ),
+            ),
           InkWell(
             onTap: () {
               Navigator.of(context).pop();

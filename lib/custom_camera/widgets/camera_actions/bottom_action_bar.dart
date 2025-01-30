@@ -3,9 +3,9 @@ import 'dart:developer';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/captured_media_preview.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_capture_button.dart';
+import 'package:camerawesome_demo/new_camera/widgets/photo_capture_button.dart';
 import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/prrofball_dropdown.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/record_button.dart';
+import 'package:camerawesome_demo/new_camera/widgets/record_button.dart';
 import 'package:flutter/material.dart';
 
 class BottomActionBar extends StatelessWidget {
@@ -112,7 +112,7 @@ class BottomActionBar extends StatelessWidget {
                       : null,
                 ),
                 if (selectedMode == FishtechyCameraMode.threeD) ...[
-                  RecrodButton(
+                  RecordButton(
                     onVideoRecording: (time) {},
                     onRecordStart: () {
                       //onstart
@@ -122,7 +122,7 @@ class BottomActionBar extends StatelessWidget {
                     },
                   ),
                 ] else if (selectedMode == FishtechyCameraMode.video) ...[
-                  RecrodButton(
+                  RecordButton(
                     onVideoRecording: onVideoRecording,
                     onRecordStart: () {
                       log(cameraState.toString());

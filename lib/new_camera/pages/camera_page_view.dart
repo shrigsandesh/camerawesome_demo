@@ -21,6 +21,7 @@ class _CameraPageViewState extends State<CameraPageView> {
   List<FishtechyCameraMode> availableModes = <FishtechyCameraMode>[];
   late PageController modePageController;
   FishtechyCameraMode _selectedMode = FishtechyCameraMode.photo;
+  String? recordingTime;
 
   @override
   void initState() {
@@ -103,7 +104,7 @@ class _CameraPageViewState extends State<CameraPageView> {
       body: Column(
         children: [
           const Spacer(),
-          const TopActionBar(),
+          TopActionBar(recordingTime: recordingTime),
           const Spacer(
             flex: 2,
           ),
@@ -143,8 +144,13 @@ class _CameraPageViewState extends State<CameraPageView> {
                 updatePage: true,
               );
             },
-            onVideoRecording: (String? timer) {},
+            onVideoRecording: (String? timer) {
+              setState(() {
+                recordingTime = timer;
+              });
+            },
             onVideoStopped: () {},
+            controller: _cameraController,
           ),
           const Spacer(),
         ],

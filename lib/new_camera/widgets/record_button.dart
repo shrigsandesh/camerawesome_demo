@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-class RecrodButton extends StatefulWidget {
-  const RecrodButton({
+class RecordButton extends StatefulWidget {
+  const RecordButton({
     super.key,
     required this.onVideoRecording,
     required this.onRecordStart,
@@ -18,10 +18,10 @@ class RecrodButton extends StatefulWidget {
   final void Function(String?) onVideoRecording;
 
   @override
-  State<RecrodButton> createState() => _RecrodButtonState();
+  State<RecordButton> createState() => _RecordButtonState();
 }
 
-class _RecrodButtonState extends State<RecrodButton> {
+class _RecordButtonState extends State<RecordButton> {
   bool _isRecording = false;
   int _timerSeconds = 0; // Timer value
   Timer? _timer;

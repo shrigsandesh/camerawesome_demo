@@ -1,8 +1,13 @@
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:camera/camera.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/photo_capture_button.dart';
-import 'package:camerawesome_demo/custom_camera/widgets/camera_actions/record_button.dart';
+import 'package:camerawesome_demo/new_camera/widgets/photo_capture_button.dart';
+import 'package:camerawesome_demo/new_camera/widgets/record_button.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bouncing_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:gal/gal.dart';
 
 class BottomActionBar extends StatelessWidget {
   const BottomActionBar({
@@ -13,6 +18,7 @@ class BottomActionBar extends StatelessWidget {
     required this.onModeChanged,
     required this.onVideoRecording,
     required this.onVideoStopped,
+    required this.controller,
   });
 
   final PageController modePgController;
@@ -21,6 +27,7 @@ class BottomActionBar extends StatelessWidget {
   final void Function(FishtechyCameraMode tab) onModeChanged;
   final void Function(String? timer) onVideoRecording;
   final VoidCallback onVideoStopped;
+  final CameraController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -78,26 +85,35 @@ class BottomActionBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 if (selectedMode == FishtechyCameraMode.threeD) ...[
-                  RecrodButton(
-                    onVideoRecording: (time) {},
+                  RecordButton(
+                    onVideoRecording: onVideoRecording,
+                    isRecording: controller.value.isRecordingVideo,
                     onRecordStart: () {
-                      //onstart
+                      controller.startVideoRecording();
                     },
-                    onRecordStopped: () {
-                      //onstop
+                    onRecordStopped: () async {
+                      onVideoStopped();
+                      final file = await controller.takePicture();
+                      await Gal.putVideo(file.path, album: 'FlyTechy');
                     },
                   ),
                 ] else if (selectedMode == FishtechyCameraMode.video) ...[
-                  RecrodButton(
+                  RecordButton(
                     onVideoRecording: onVideoRecording,
-                    onRecordStart: () {},
+                    isRecording: controller.value.isRecordingVideo,
+                    onRecordStart: () {
+                      controller.startVideoRecording();
+                    },
                     onRecordStopped: () {
                       onVideoStopped();
+                      saveVideo();
                     },
                   ),
                 ] else
                   PhotoCaptureButton(
-                    onTap: () {},
+                    onTap: () {
+                      savePhoto();
+                    },
                   ),
               ],
             ),
@@ -105,6 +121,31 @@ class BottomActionBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void saveVideo() async {
+    try {
+      final file = await controller.stopVideoRecording();
+      String newPath = file.path.replaceAll('.temp', '.mp4');
+      log(file.path);
+
+      File newFile = File(file.path);
+      final renamedFile = await newFile.rename(newPath);
+      await Gal.putVideo(renamedFile.path, album: 'FlyTechy');
+      log("successfully saved video to gallery");
+    } catch (e) {
+      log(e.toString());
+    }
+  }
+
+  void savePhoto() async {
+    try {
+      final file = await controller.takePicture();
+      await Gal.putImage(file.path, album: 'FlyTechy');
+      log("successfully saved photo to gallery");
+    } catch (e) {
+      log("error saving file");
+    }
   }
 }
 
