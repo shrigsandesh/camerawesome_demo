@@ -103,7 +103,7 @@ class _CameraPageViewState extends State<CameraPageView> {
               controller: _pageController,
               children: [
                 buildPreview(_cameraController),
-                CameraPreview(_cameraController),
+                buildPreview(_cameraController),
                 const SizedBox()
               ],
             ),
@@ -117,6 +117,9 @@ class _CameraPageViewState extends State<CameraPageView> {
               onSelectionModeChanged: _onSelectionModeChanged,
               onModeTapped: (FishtechyCameraMode tab) {
                 _onSelectionModeChanged(tab.index);
+                _pageController.animateToPage(tab.index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeIn);
               },
               onVideoRecording: (String? timer) {},
               onVideoStopped: () {},
