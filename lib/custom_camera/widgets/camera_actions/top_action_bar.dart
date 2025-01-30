@@ -3,7 +3,7 @@ import 'package:camerawesome_demo/extensions/context_extensions.dart';
 import 'package:flutter/material.dart';
 
 class TopActionBar extends StatelessWidget {
-  const TopActionBar({super.key, required this.state});
+  const TopActionBar({super.key, this.state});
 
   final CameraState? state;
 

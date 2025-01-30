@@ -139,7 +139,7 @@ class _RulerZoomSliderState extends State<RulerZoomSlider> {
         opacity: _isOpen ? 1.0 : 0.2,
         duration: RulerZoomConstants.animationDuration,
         child: ColoredBox(
-          color: Colors.black.withOpacity(.5),
+          color: Colors.black.withValues(alpha: .5),
           child: Column(
             children: [
               _buildRulerSlider(),

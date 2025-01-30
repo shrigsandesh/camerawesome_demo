@@ -23,7 +23,7 @@ class ZoomButton extends StatelessWidget {
           horizontal: RulerZoomConstants.defaultButtonMargin,
         ),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(.8),
+          color: Colors.black.withValues(alpha: .8),
           shape: BoxShape.circle,
         ),
         child: Center(
