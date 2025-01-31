@@ -195,39 +195,38 @@ class _CameraPageViewState extends State<CameraPageView> {
     return AspectRatio(
       aspectRatio: 1 / _cameraController.value.aspectRatio,
       child: Stack(
+        fit: StackFit.expand,
         children: [
           CameraPreview(_cameraController),
-          LazyLoadWidget(
-            child: CustomPaint(
-              painter: FramePainter(
-                padding: CameraConstants.outerPadding,
-                color: const Color.fromRGBO(0, 5, 34, 0.8),
-              ),
-              child: Container(
-                margin: CameraConstants.outerPadding,
-                child: Stack(
-                  children: [
-                    StreamBuilder(
-                        stream: _detector?.resultsStream.stream,
-                        builder: (context, snapshot) {
-                          // If there's no data yet, show a loading indicator or a placeholder
-                          if (!snapshot.hasData) {
-                            return const SizedBox.shrink();
-                          }
-                          final result = snapshot.data as MlProcessingResult;
-                          return Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              color: Colors.black26,
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                result.detectionStatus,
-                              ),
+          CustomPaint(
+            painter: FramePainter(
+              padding: CameraConstants.outerPadding,
+              color: const Color.fromRGBO(0, 5, 34, 0.8),
+            ),
+            child: Container(
+              margin: CameraConstants.outerPadding,
+              child: Stack(
+                children: [
+                  StreamBuilder(
+                      stream: _detector?.resultsStream.stream,
+                      builder: (context, snapshot) {
+                        // If there's no data yet, show a loading indicator or a placeholder
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
+                        final result = snapshot.data as MlProcessingResult;
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            color: Colors.black26,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              result.detectionStatus,
                             ),
-                          );
-                        }),
-                  ],
-                ),
+                          ),
+                        );
+                      }),
+                ],
               ),
             ),
           ),
