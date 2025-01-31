@@ -91,8 +91,6 @@ class BottomActionBar extends StatelessWidget {
                     },
                     onRecordStopped: () async {
                       onVideoStopped();
-                      final file = await controller.takePicture();
-                      await Gal.putVideo(file.path, album: 'FlyTechy');
                     },
                   ),
                 ] else if (selectedMode == FishtechyCameraMode.video) ...[
@@ -129,7 +127,7 @@ class BottomActionBar extends StatelessWidget {
 
       File newFile = File(file.path);
       final renamedFile = await newFile.rename(newPath);
-      await Gal.putVideo(renamedFile.path, album: 'FlyTechy');
+      await Gal.putVideo(renamedFile.path, album: 'Flytechy');
       log("successfully saved video to gallery");
     } catch (e) {
       log(e.toString());
@@ -139,7 +137,7 @@ class BottomActionBar extends StatelessWidget {
   void savePhoto() async {
     try {
       final file = await controller.takePicture();
-      await Gal.putImage(file.path, album: 'FlyTechy');
+      await Gal.putImage(file.path, album: 'Flytechy');
       log("successfully saved photo to gallery");
     } catch (e) {
       log("error saving file");

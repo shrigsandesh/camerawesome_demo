@@ -36,7 +36,9 @@ class _RecordButtonState extends State<RecordButton> {
 
   void _startTimer() {
     _timerSeconds = 0;
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       setState(() {
         _timerSeconds++;
       });

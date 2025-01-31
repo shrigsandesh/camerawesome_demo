@@ -1,9 +1,12 @@
+import 'dart:developer';
+
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/custom_camera/painters/frame_painter.dart';
 import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:camerawesome_demo/custom_camera/utils/detector_camera.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bottom_action_bar.dart';
+import 'package:camerawesome_demo/new_camera/widgets/lazy_load_widget.dart';
 import 'package:camerawesome_demo/new_camera/widgets/top_action_bar.dart';
 import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +81,7 @@ class _CameraPageViewState extends State<CameraPageView> {
         _cameraController.startImageStream(onLatestImageAvailable);
       });
     } catch (e) {
-      print('Error initializing camera: $e');
+      log('Error initializing camera: $e');
     }
   }
 
@@ -136,7 +139,11 @@ class _CameraPageViewState extends State<CameraPageView> {
       body: Column(
         children: [
           const Spacer(),
-          TopActionBar(recordingTime: recordingTime),
+          TopActionBar(
+            recordingTime: recordingTime,
+            selectedMode: _selectedMode,
+            controller: _cameraController,
+          ),
           const Spacer(
             flex: 2,
           ),
@@ -183,7 +190,11 @@ class _CameraPageViewState extends State<CameraPageView> {
                 recordingTime = timer;
               });
             },
-            onVideoStopped: () {},
+            onVideoStopped: () {
+              setState(() {
+                recordingTime = null;
+              });
+            },
             controller: _cameraController,
           ),
           const Spacer(),
@@ -201,55 +212,37 @@ class _CameraPageViewState extends State<CameraPageView> {
         key: _globalStackKey,
         children: [
           CameraPreview(_cameraController),
-          CustomPaint(
-            painter: FramePainter(
-              padding: CameraConstants.outerPadding,
-              color: const Color.fromRGBO(0, 5, 34, 0.8),
-            ),
-            child: Container(
-              margin: CameraConstants.outerPadding,
-              child: Stack(
-                key: _cameraPreviewWindowKey,
-                fit: StackFit.expand,
-                children: [
-                  TextButton(
-                      onPressed: () {
-                        _updateContainerRect();
-                      },
-                      child: const Text("data")),
-                  if (containerRect != null) ...[
+          LazyLoadWidget(
+            child: CustomPaint(
+              painter: FramePainter(
+                padding: CameraConstants.outerPadding,
+                color: const Color.fromRGBO(0, 5, 34, 0.8),
+              ),
+              child: Container(
+                margin: CameraConstants.outerPadding,
+                child: Stack(
+                  children: [
                     StreamBuilder(
-                      stream: _detector?.resultsStream.stream,
-                      builder: (context, snapshot) {
-                        // If there's no data yet, show a loading indicator or a placeholder
-                        if (!snapshot.hasData) {
-                          return const SizedBox.shrink();
-                        }
-                        final result = snapshot.data as MlProcessingResult;
-                        return Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Container(
-                            color: Colors.black26,
-                            margin: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              result.getDetectionStatus(
-                                containerRect: containerRect!,
-                                renderSize: Size(
-                                  screenSize.width,
-                                  screenSize.width *
-                                      _cameraController.value.aspectRatio,
-                                ),
-                              ),
-                              style: const TextStyle(
-                                color: Colors.white,
+                        stream: _detector?.resultsStream.stream,
+                        builder: (context, snapshot) {
+                          // If there's no data yet, show a loading indicator or a placeholder
+                          if (!snapshot.hasData) {
+                            return const SizedBox.shrink();
+                          }
+                          final result = snapshot.data as MlProcessingResult;
+                          return Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              color: Colors.black26,
+                              margin: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                result.detectionStatus,
                               ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                          );
+                        }),
                   ],
-                ],
+                ),
               ),
             ),
           ),
