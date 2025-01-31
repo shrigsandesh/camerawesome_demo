@@ -26,10 +26,16 @@ class _CameraPageViewState extends State<CameraPageView> {
   FishtechyCameraMode _selectedMode = FishtechyCameraMode.photo;
   Detector? _detector;
   String? recordingTime;
+  final GlobalKey _cameraPreviewWindowKey = GlobalKey();
+  final GlobalKey _globalStackKey = GlobalKey();
 
+  Rect? containerRect;
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateContainerRect();
+    });
     availableModes = [
       FishtechyCameraMode.photo,
       FishtechyCameraMode.video,
@@ -37,6 +43,14 @@ class _CameraPageViewState extends State<CameraPageView> {
     _pageController = PageController();
     modePageController = PageController(viewportFraction: 0.25, initialPage: 0);
     _initializeCamera();
+  }
+
+  void _updateContainerRect() {
+    setState(() {
+      containerRect = _cameraPreviewWindowKey.globalPaintBounds(
+        _globalStackKey.currentContext?.findRenderObject(),
+      );
+    });
   }
 
   Future<void> _initializeCamera() async {
@@ -51,7 +65,7 @@ class _CameraPageViewState extends State<CameraPageView> {
       _cameraController = CameraController(
         _cameras[0],
         enableAudio: true,
-        ResolutionPreset.medium,
+        ResolutionPreset.high,
       );
 
       _cameraController.initialize().then((_) {
@@ -184,6 +198,7 @@ class _CameraPageViewState extends State<CameraPageView> {
     return AspectRatio(
       aspectRatio: 1 / _cameraController.value.aspectRatio,
       child: Stack(
+        key: _globalStackKey,
         children: [
           CameraPreview(_cameraController),
           CustomPaint(
@@ -194,8 +209,16 @@ class _CameraPageViewState extends State<CameraPageView> {
             child: Container(
               margin: CameraConstants.outerPadding,
               child: Stack(
+                key: _cameraPreviewWindowKey,
+                fit: StackFit.expand,
                 children: [
-                  StreamBuilder(
+                  TextButton(
+                      onPressed: () {
+                        _updateContainerRect();
+                      },
+                      child: const Text("data")),
+                  if (containerRect != null) ...[
+                    StreamBuilder(
                       stream: _detector?.resultsStream.stream,
                       builder: (context, snapshot) {
                         // If there's no data yet, show a loading indicator or a placeholder
@@ -209,11 +232,23 @@ class _CameraPageViewState extends State<CameraPageView> {
                             color: Colors.black26,
                             margin: const EdgeInsets.only(bottom: 10),
                             child: Text(
-                              result.detectionStatus,
+                              result.getDetectionStatus(
+                                containerRect: containerRect!,
+                                renderSize: Size(
+                                  screenSize.width,
+                                  screenSize.width *
+                                      _cameraController.value.aspectRatio,
+                                ),
+                              ),
+                              style: const TextStyle(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         );
-                      }),
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -265,5 +300,18 @@ class _CameraPageViewState extends State<CameraPageView> {
         ],
       ),
     );
+  }
+}
+
+extension GlobalKeyExtension on GlobalKey {
+  Rect? globalPaintBounds(RenderObject? ancestor) {
+    final renderObject = currentContext?.findRenderObject();
+    if (renderObject != null) {
+      final translation =
+          renderObject.getTransformTo(ancestor).getTranslation();
+      final offset = Offset(translation.x, translation.y);
+      return renderObject.paintBounds.shift(offset);
+    }
+    return null;
   }
 }
