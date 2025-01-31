@@ -6,7 +6,6 @@ import 'package:camerawesome_demo/custom_camera/painters/object_detector_painter
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:camerawesome_demo/custom_camera/utils/detector_camera.dart';
 import 'package:camerawesome_demo/new_camera/widgets/bottom_action_bar.dart';
-import 'package:camerawesome_demo/new_camera/widgets/lazy_load_widget.dart';
 import 'package:camerawesome_demo/new_camera/widgets/top_action_bar.dart';
 import 'package:expandable_page_view/expandable_page_view.dart';
 import 'package:flutter/material.dart';
@@ -210,39 +209,45 @@ class _CameraPageViewState extends State<CameraPageView> {
       aspectRatio: 1 / _cameraController.value.aspectRatio,
       child: Stack(
         key: _globalStackKey,
+        fit: StackFit.expand,
         children: [
           CameraPreview(_cameraController),
-          LazyLoadWidget(
-            child: CustomPaint(
-              painter: FramePainter(
-                padding: CameraConstants.outerPadding,
-                color: const Color.fromRGBO(0, 5, 34, 0.8),
-              ),
-              child: Container(
-                margin: CameraConstants.outerPadding,
-                child: Stack(
-                  children: [
-                    StreamBuilder(
-                        stream: _detector?.resultsStream.stream,
-                        builder: (context, snapshot) {
-                          // If there's no data yet, show a loading indicator or a placeholder
-                          if (!snapshot.hasData) {
-                            return const SizedBox.shrink();
-                          }
-                          final result = snapshot.data as MlProcessingResult;
-                          return Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              color: Colors.black26,
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: Text(
-                                result.detectionStatus,
+          CustomPaint(
+            painter: FramePainter(
+              padding: CameraConstants.outerPadding,
+              color: const Color.fromRGBO(0, 5, 34, 0.8),
+            ),
+            child: Container(
+              margin: CameraConstants.outerPadding,
+              child: Stack(
+                children: [
+                  StreamBuilder(
+                      stream: _detector?.resultsStream.stream,
+                      builder: (context, snapshot) {
+                        // If there's no data yet, show a loading indicator or a placeholder
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
+                        final result = snapshot.data as MlProcessingResult;
+                        return Align(
+                          alignment: Alignment.bottomCenter,
+                          child: Container(
+                            color: Colors.black26,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            child: Text(
+                              result.getDetectionStatus(
+                                containerRect: containerRect!,
+                                renderSize: Size(
+                                  screenSize.width,
+                                  screenSize.width *
+                                      _cameraController.value.aspectRatio,
+                                ),
                               ),
                             ),
-                          );
-                        }),
-                  ],
-                ),
+                          ),
+                        );
+                      }),
+                ],
               ),
             ),
           ),
