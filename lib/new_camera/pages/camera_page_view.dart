@@ -128,7 +128,7 @@ class _CameraPageViewState extends State<CameraPageView> {
           TopActionBar(
             recordingTime: recordingTime,
             selectedMode: _selectedMode,
-            isVideoRecording: _cameraController.value.isRecordingVideo,
+            controller: _cameraController,
           ),
           const Spacer(
             flex: 2,

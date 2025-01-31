@@ -1,16 +1,19 @@
+import 'package:camera/camera.dart';
 import 'package:camerawesome_demo/custom_camera/constants/camera_constants.dart';
 import 'package:camerawesome_demo/extensions/context_extensions.dart';
+import 'package:camerawesome_demo/new_camera/widgets/flash_mode_toggle_button.dart';
 import 'package:flutter/material.dart';
 
 class TopActionBar extends StatelessWidget {
-  const TopActionBar(
-      {super.key,
-      this.recordingTime,
-      required this.isVideoRecording,
-      required this.selectedMode});
+  const TopActionBar({
+    super.key,
+    this.recordingTime,
+    required this.selectedMode,
+    required this.controller,
+  });
   final String? recordingTime;
-  final bool isVideoRecording;
   final FishtechyCameraMode selectedMode;
+  final CameraController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -19,17 +22,11 @@ class TopActionBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          InkWell(
-            onTap: () {},
-            child: const Icon(
-              Icons.flash_auto,
-              color: Colors.white,
-            ),
-          ),
+          FlashModeToggleButton(controller: controller),
           if (recordingTime != null)
             AnimatedOpacity(
               opacity: (recordingTime != '00:00' &&
-                      isVideoRecording &&
+                      controller.value.isRecordingVideo &&
                       selectedMode == FishtechyCameraMode.video)
                   ? 1.0
                   : 0.0,
