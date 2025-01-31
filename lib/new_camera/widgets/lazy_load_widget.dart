@@ -6,7 +6,7 @@ class LazyLoadWidget extends StatelessWidget {
   final Widget child;
 
   Future<void> _delayedFuture() async {
-    await Future.delayed(const Duration(milliseconds: 1350));
+    await Future.delayed(const Duration(milliseconds: 1500));
   }
 
   @override
