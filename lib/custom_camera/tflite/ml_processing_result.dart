@@ -2,10 +2,10 @@
 import 'dart:ui';
 
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
-import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
+import 'package:camerawesome_demo/custom_camera/tflite/ml_recognition.dart';
 
 class MlProcessingResult {
-  final List<Recognition> recognitions;
+  final List<MlRecognition> recognitions;
   final MlProcessingStats stats;
 
   MlProcessingResult({
@@ -18,59 +18,94 @@ class MlProcessingResult {
       'MlProcessingResult(recognitions: $recognitions, stats: $stats)';
 }
 
-/// Extension to provide helper methods for `MlProcessingResult`
+enum MlRecognitionWindowStatus {
+  noObject,
+  noBall,
+  noFish,
+  fishAndBallOffCenter,
+  fishOffCenter,
+  ballOffCenter,
+  allGood,
+}
+
+extension MlRecognitionWindowStatusX on MlRecognitionWindowStatus {
+  String get message => switch (this) {
+        MlRecognitionWindowStatus.noObject => "No object detected",
+        MlRecognitionWindowStatus.noFish => "No fish detected",
+        MlRecognitionWindowStatus.noBall => "No ball detected",
+        MlRecognitionWindowStatus.fishOffCenter =>
+          "Place the fish inside the frame",
+        MlRecognitionWindowStatus.ballOffCenter =>
+          "Center the ball inside the frame",
+        MlRecognitionWindowStatus.fishAndBallOffCenter =>
+          "Center the fish and ball inside the frame",
+        MlRecognitionWindowStatus.allGood => "All good",
+      };
+}
+
 extension MlProcessingResultX on MlProcessingResult {
-  /// Returns a status message based on detected objects.
-  String getDetectionStatus({
+  MlRecognitionWindowStatus getDetectionStatuses({
     required Rect containerRect,
     required Size renderSize,
   }) {
     if (recognitions.isEmpty) {
-      return "No object detected";
+      return MlRecognitionWindowStatus.noObject;
     }
 
-    final fishRecognitions = recognitions.where((e) => e.classId == 0);
-    final ballRecognitions = recognitions.where((e) => e.classId == 1);
+    final fishMlRecognitions =
+        recognitions.where((e) => e.type == MlRecognitionType.fish);
+    final ballMlRecognitions =
+        recognitions.where((e) => e.type == MlRecognitionType.ball);
 
-    final hasFish = fishRecognitions.isNotEmpty;
-    final hasBall = ballRecognitions.isNotEmpty;
-
-    bool isFullyInside(Rect rect) {
-      return containerRect.contains(rect.topLeft) &&
-          containerRect.contains(rect.topRight) &&
-          containerRect.contains(rect.bottomLeft) &&
-          containerRect.contains(rect.bottomRight);
+    final hasFish = fishMlRecognitions.isNotEmpty;
+    final hasBall = ballMlRecognitions.isNotEmpty;
+    if (!hasFish && !hasBall) {
+      return MlRecognitionWindowStatus.noObject;
     }
 
-    final fishInside = fishRecognitions.every(
-      (e) => isFullyInside(
-        e.renderRect(
-          renderSize: renderSize,
-        ),
-      ),
-    );
-    final ballInside = ballRecognitions.every(
-      (e) => isFullyInside(
-        e.renderRect(
-          renderSize: renderSize,
-        ),
+    if (!hasFish) {
+      return MlRecognitionWindowStatus.noFish;
+    }
+
+    if (!hasBall) {
+      return MlRecognitionWindowStatus.noBall;
+    }
+    final fishInside = fishMlRecognitions.every(
+      (e) => containerRect.totallyContains(
+        e.renderRect(renderSize: renderSize),
       ),
     );
 
-    if (!hasFish && !hasBall) return "No object detected";
-    if (!hasFish) return "No fish detected";
-    if (!hasBall) return "No ball detected";
+    final ballContainerRect = Rect.fromCenter(
+      center: containerRect.center,
+      width: containerRect.width / 2,
+      height: containerRect.height / 2,
+    );
 
+    final ballInside = ballMlRecognitions.every(
+      (e) => ballContainerRect.totallyContains(
+        e.renderRect(renderSize: renderSize),
+      ),
+    );
     if (!fishInside && !ballInside) {
-      return "Center the fish and ball inside the frame";
+      return MlRecognitionWindowStatus.fishAndBallOffCenter;
     }
     if (!fishInside) {
-      return "Center the fish inside the frame";
+      return MlRecognitionWindowStatus.fishOffCenter;
     }
     if (!ballInside) {
-      return "Center the ball inside the frame";
+      return MlRecognitionWindowStatus.ballOffCenter;
     }
 
-    return "Fish and Ball detected";
+    return MlRecognitionWindowStatus.allGood;
+  }
+}
+
+extension RectContainX on Rect {
+  bool totallyContains(Rect other) {
+    return contains(other.topLeft) &&
+        contains(other.topRight) &&
+        contains(other.bottomLeft) &&
+        contains(other.bottomRight);
   }
 }

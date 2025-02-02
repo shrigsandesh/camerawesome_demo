@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
+import 'package:camerawesome_demo/custom_camera/tflite/ml_recognition.dart';
 import 'package:collection/collection.dart';
 
 /// Extension on [Rect] to provide Intersection over Union (IoU) calculations
@@ -50,16 +50,16 @@ class NmsUtils {
   ///
   /// [list] A list of recognition objects to process
   /// Returns a list of filtered recognition objects
-  static List<Recognition> nmsForAllClasses(List<Recognition> list) {
-    Map<int, PriorityQueue<Recognition>> classMap = {};
-    List<Recognition> nmsList = [];
+  static List<MlRecognition> nmsForAllClasses(List<MlRecognition> list) {
+    Map<int, PriorityQueue<MlRecognition>> classMap = {};
+    List<MlRecognition> nmsList = [];
 
     // 1. Group recognitions by class
     for (final recognition in list) {
       classMap
           .putIfAbsent(
-              recognition.classId,
-              () => HeapPriorityQueue<Recognition>(
+              recognition.type.classId,
+              () => HeapPriorityQueue<MlRecognition>(
                   (a, b) => b.score.compareTo(a.score)))
           .add(recognition);
     }

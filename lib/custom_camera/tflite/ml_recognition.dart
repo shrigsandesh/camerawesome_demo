@@ -1,13 +1,10 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-
-import 'dart:developer';
-
 import 'package:flutter/cupertino.dart';
 
 /// Represents the recognition output from the model
-class Recognition implements Comparable<Recognition> {
+class MlRecognition implements Comparable<MlRecognition> {
   /// Index of the result
-  final int classId;
+  final MlRecognitionType type;
 
   /// Confidence [0.0, 1.0]
   final double score;
@@ -18,36 +15,40 @@ class Recognition implements Comparable<Recognition> {
   /// passed for inference
   final Rect rect;
 
-  Recognition._({
-    required this.classId,
+  MlRecognition._({
+    required this.type,
     required this.score,
     required this.rect,
   });
 
-  /// Creates a `Recognition` object from tensor output
-  factory Recognition.fromFlatOutput({
+  /// Creates a `MlRecognition` object from tensor output
+  factory MlRecognition.fromFlatOutput({
     required List<double> output,
   }) {
-    return Recognition._(
+    return MlRecognition._(
       rect: Rect.fromPoints(
         Offset(output[0], output[1]),
         Offset(output[2], output[3]),
       ),
       score: output[4],
-      classId: output[5].toInt(),
+      type: MlRecognitionType.values.firstWhere(
+        (e) => e.classId == output[5].toInt(),
+        orElse: () {
+          return MlRecognitionType.ball;
+        },
+      ),
     );
   }
 
-  /// Compares `Recognition` objects based on their `score`
+  /// Compares `MlRecognition` objects based on their `score`
   @override
-  int compareTo(Recognition other) {
+  int compareTo(MlRecognition other) {
     return score.compareTo(other.score);
   }
 
   Rect renderRect({
     required Size renderSize,
   }) {
-    log(renderSize.toString());
     // Calculate scaling factors for rendering
     double scaleX = renderSize.width;
     double scaleY = renderSize.height;
@@ -62,7 +63,14 @@ class Recognition implements Comparable<Recognition> {
   }
 
   @override
-  String toString() {
-    return 'Recognition(classId: $classId, score: $score, rect: $rect)';
-  }
+  String toString() => 'MlRecognition(type: $type, score: $score, rect: $rect)';
+}
+
+enum MlRecognitionType { fish, ball }
+
+extension MlRecognitionTypeX on MlRecognitionType {
+  int get classId => switch (this) {
+        MlRecognitionType.fish => 0,
+        MlRecognitionType.ball => 1,
+      };
 }

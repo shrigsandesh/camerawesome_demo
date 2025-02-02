@@ -211,6 +211,7 @@ class FramePainter extends CustomPainter {
     final Paint linePaint = Paint()
       ..color = const Color.fromRGBO(74, 198, 249, 1)
       ..style = PaintingStyle.stroke
+      ..strokeJoin = StrokeJoin.bevel
       ..strokeWidth = lineWidth * 4;
 
     const double cornerRadius = 12.0; // Radius for rounded corners

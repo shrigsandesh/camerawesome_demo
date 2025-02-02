@@ -5,7 +5,7 @@ import 'dart:isolate';
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_result.dart';
 import 'package:camerawesome_demo/custom_camera/tflite/ml_processing_stats.dart';
-import 'package:camerawesome_demo/custom_camera/tflite/recognition.dart';
+import 'package:camerawesome_demo/custom_camera/tflite/ml_recognition.dart';
 import 'package:camerawesome_demo/custom_camera/utils/image_utils.dart';
 import 'package:camerawesome_demo/custom_camera/utils/nms_utils.dart';
 import 'package:flutter/foundation.dart';
@@ -298,18 +298,18 @@ class _DetectorServer {
     );
   }
 
-  List<Recognition> _decodeOutput({
+  List<MlRecognition> _decodeOutput({
     required List output,
     required int imageWidth,
     required int imageHeight,
   }) {
-    List<Recognition> recognitions = [];
+    List<MlRecognition> recognitions = [];
 
     // Access the first batch (since output is batched)
     final detections = output[0] as List<List<num>>;
 
     for (var detection in detections) {
-      final recognition = Recognition.fromFlatOutput(
+      final recognition = MlRecognition.fromFlatOutput(
         output: detection.map((e) => e.toDouble()).toList(),
       );
 
@@ -321,7 +321,7 @@ class _DetectorServer {
   }
 
   /// Object detection main function
-  List<Recognition> _runInference({
+  List<MlRecognition> _runInference({
     required List<List<List<num>>> imageMatrix,
     required int imageWidth,
     required int imageHeight,
